@@ -1,0 +1,23 @@
+{
+  "name": "slidev-template",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "PATH=/opt/homebrew/opt/node@20/bin:$PATH slidev --open",
+    "build": "PATH=/opt/homebrew/opt/node@20/bin:$PATH slidev build",
+    "export": "PATH=/opt/homebrew/opt/node@20/bin:$PATH slidev export"
+  },
+  "dependencies": {
+    "@slidev/cli": "^52.0.0",
+    "@slidev/theme-default": "^0.25.0",
+    "micromark": "^4.0.2"
+  },
+  "devDependencies": {
+    "@iconify-json/carbon": "^1.2.8",
+    "@iconify-json/logos": "^1.2.4",
+    "@iconify/utils": "^3.0.0",
+    "playwright-chromium": "^1.45.0",
+    "seedrandom": "^3.0.5",
+    "unocss": "^66.0.0"
+  }
+}
