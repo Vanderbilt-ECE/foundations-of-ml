@@ -33,125 +33,137 @@ const currentItems = computed(() => (selected.value ? selected.value[activeTab.v
 function selectUnit(unit) {
   selected.value = unit;
   activeTab.value = 'presentations';
+  window.scrollTo(0, 0);
 }
 
 function closePane() {
   selected.value = null;
+  window.scrollTo(0, 0);
 }
 </script>
 
 <template>
-  <div class="hero" :class="{ collapsed: selected }">
-    <div class="hero-text">
-      <div class="eyebrow">Foundations of Machine Learning</div>
-      <h1>From vectors to<br>working models.</h1>
-      <p>Eleven units, one straight line from math to models that actually predict something. Pick a node below to start.</p>
+  <div class="stage">
+    <div class="hero" :class="{ collapsed: selected }">
+      <div class="hero-text">
+        <div class="eyebrow">Foundations of Machine Learning</div>
+        <h1>From vectors to<br>working models.</h1>
+        <p>Eleven units, one straight line from math to models that actually predict something. Pick a node below to start.</p>
+      </div>
     </div>
-  </div>
 
-  <div class="layout">
-    <div class="map" :class="{ compact: selected }">
-      <button v-if="selected" class="back" @click="closePane">&larr; All units</button>
+    <div class="layout">
+      <div class="map" :class="{ compact: selected }">
+        <button v-if="selected" class="back" @click="closePane">&larr; All units</button>
 
-      <div class="spine"></div>
+        <div class="spine"></div>
 
-      <div
-        v-for="unit in units"
-        :key="unit.num"
-        class="row"
-        @mouseenter="hoveredId = unit.num"
-        @mouseleave="hoveredId = null"
-      >
-        <button
-          class="node"
-          :class="{ hovered: hoveredId === unit.num, selected: selected?.num === unit.num }"
-          @click="selectUnit(unit)"
-        >{{ unit.num }}</button>
-
-        <button
-          class="card-link"
-          @click="selectUnit(unit)"
+        <div
+          v-for="unit in units"
+          :key="unit.num"
+          class="row"
+          @mouseenter="hoveredId = unit.num"
+          @mouseleave="hoveredId = null"
         >
+          <button
+            class="node"
+            :class="{ hovered: hoveredId === unit.num, selected: selected?.num === unit.num }"
+            @click="selectUnit(unit)"
+          >{{ unit.num }}</button>
+
+          <button class="card-link" @click="selectUnit(unit)">
+            <BorderGlow
+              class-name="w-full"
+              background-color="#12161f"
+              :border-radius="14"
+              :glow-radius="22"
+              :glow-intensity="0.8"
+              :edge-sensitivity="25"
+              :cone-spread="30"
+              glow-color="195 90% 60%"
+              :colors="['#18549a', '#01b6d1', '#38bdf8']"
+            >
+              <div class="card" :class="{ hovered: hoveredId === unit.num }">
+                <div class="card-top">
+                  <div>
+                    <div class="card-tag">{{ unit.tag }}</div>
+                    <div class="card-title">{{ unit.title }}</div>
+                  </div>
+                </div>
+                <div class="card-blurb" :class="{ open: hoveredId === unit.num && !selected }">{{ unit.blurb }}</div>
+              </div>
+            </BorderGlow>
+          </button>
+        </div>
+      </div>
+
+      <Transition name="pane">
+        <div v-if="selected" class="pane" :key="selected.num">
           <BorderGlow
             class-name="w-full"
             background-color="#12161f"
-            :border-radius="14"
-            :glow-radius="22"
+            :border-radius="18"
+            :glow-radius="26"
             :glow-intensity="0.8"
-            :edge-sensitivity="25"
+            :edge-sensitivity="20"
             :cone-spread="30"
             glow-color="195 90% 60%"
             :colors="['#18549a', '#01b6d1', '#38bdf8']"
           >
-            <div class="card" :class="{ hovered: hoveredId === unit.num }">
-              <div class="card-top">
-                <div>
-                  <div class="card-tag">{{ unit.tag }}</div>
-                  <div class="card-title">{{ unit.title }}</div>
-                </div>
+            <div class="pane-inner">
+              <div class="pane-tag">{{ selected.tag }}</div>
+              <h2 class="pane-title">{{ selected.title }}</h2>
+              <p class="pane-blurb">{{ selected.blurb }}</p>
+
+              <div class="tabs">
+                <button
+                  v-for="tab in tabs"
+                  :key="tab.id"
+                  class="tab"
+                  :class="{ active: activeTab === tab.id }"
+                  @click="activeTab = tab.id"
+                >{{ tab.label }}</button>
               </div>
-              <div class="card-blurb" :class="{ open: hoveredId === unit.num && !selected }">{{ unit.blurb }}</div>
+
+              <div class="tab-content">
+                <p v-if="!currentItems.length" class="empty">Nothing here yet — check back soon.</p>
+                <ul v-else class="item-list">
+                  <li v-for="item in currentItems" :key="item.href"><a :href="item.href">{{ item.title }}</a></li>
+                </ul>
+              </div>
             </div>
           </BorderGlow>
-        </button>
-      </div>
+        </div>
+      </Transition>
     </div>
-
-    <Transition name="pane">
-      <div v-if="selected" class="pane" :key="selected.num">
-        <BorderGlow
-          class-name="w-full"
-          background-color="#12161f"
-          :border-radius="18"
-          :glow-radius="26"
-          :glow-intensity="0.8"
-          :edge-sensitivity="20"
-          :cone-spread="30"
-          glow-color="195 90% 60%"
-          :colors="['#18549a', '#01b6d1', '#38bdf8']"
-        >
-          <div class="pane-inner">
-            <div class="pane-tag">{{ selected.tag }}</div>
-            <h2 class="pane-title">{{ selected.title }}</h2>
-            <p class="pane-blurb">{{ selected.blurb }}</p>
-
-            <div class="tabs">
-              <button
-                v-for="tab in tabs"
-                :key="tab.id"
-                class="tab"
-                :class="{ active: activeTab === tab.id }"
-                @click="activeTab = tab.id"
-              >{{ tab.label }}</button>
-            </div>
-
-            <div class="tab-content">
-              <p v-if="!currentItems.length" class="empty">Nothing here yet — check back soon.</p>
-              <ul v-else class="item-list">
-                <li v-for="item in currentItems" :key="item.href"><a :href="item.href">{{ item.title }}</a></li>
-              </ul>
-            </div>
-          </div>
-        </BorderGlow>
-      </div>
-    </Transition>
   </div>
 </template>
 
 <style scoped>
+/* Centering/max-width live only here, and never change — the map/pane split
+   happens entirely inside, so nothing about this box's own position animates
+   (auto margins can't be transitioned smoothly, so we never toggle them). */
+.stage {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 8vw;
+  box-sizing: border-box;
+}
+
 .hero {
   position: relative;
-  padding: 110px 8vw 90px;
+  padding: 110px 0 90px;
   border-bottom: 1px solid #1c2130;
-  max-height: 500px;
+  max-height: 640px;
   overflow: hidden;
-  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, padding 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease, padding 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .hero.collapsed {
   max-height: 0;
   opacity: 0;
   padding-top: 0;
   padding-bottom: 0;
+  border-color: transparent;
   pointer-events: none;
 }
 .hero-text { position: relative; max-width: 900px; }
@@ -187,18 +199,15 @@ h1 {
 
 .map {
   position: relative;
-  flex: 1 1 auto;
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 90px 8vw 140px;
-  transition: flex-basis 0.5s cubic-bezier(0.22, 1, 0.36, 1), max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    padding 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 90px 0 140px;
+  box-sizing: border-box;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1), padding 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .map.compact {
-  flex: 0 0 380px;
-  max-width: 380px;
-  margin: 0;
-  padding: 48px 24px 60px 8vw;
+  width: 340px;
+  padding: 48px 24px 60px 0;
 }
 
 .back {
@@ -216,7 +225,7 @@ h1 {
 
 .spine {
   position: absolute;
-  left: calc(8vw + 27px);
+  left: 27px;
   top: 28px;
   bottom: 88px;
   width: 2px;
@@ -257,6 +266,7 @@ h1 {
 
 .card-link {
   flex: 1;
+  min-width: 0;
   text-decoration: none;
   color: inherit;
   display: block;
@@ -270,7 +280,7 @@ h1 {
 
 .card {
   padding: 22px 26px;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), padding 0.4s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), padding 0.3s ease;
 }
 .card.hovered { transform: translateX(6px); }
 .map.compact .card { padding: 14px 18px; }
@@ -308,11 +318,11 @@ h1 {
 
 .pane {
   flex: 1 1 auto;
-  padding: 48px 8vw 60px 24px;
+  padding: 48px 0 60px 24px;
   min-width: 0;
 }
-.pane-enter-active { transition: opacity 0.4s ease 0.15s, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s; }
-.pane-leave-active { transition: opacity 0.2s ease; }
+.pane-enter-active { transition: opacity 0.35s ease 0.12s, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.12s; }
+.pane-leave-active { transition: opacity 0.15s ease; }
 .pane-enter-from { opacity: 0; transform: translateX(24px); }
 .pane-leave-to { opacity: 0; }
 
@@ -361,7 +371,7 @@ h1 {
 
 @media (max-width: 860px) {
   .layout { flex-direction: column; }
-  .map.compact { flex-basis: auto; max-width: none; width: 100%; padding: 32px 8vw; }
-  .pane { padding: 0 8vw 60px; }
+  .map.compact { width: 100%; padding: 32px 0; }
+  .pane { padding: 24px 0 60px; }
 }
 </style>
