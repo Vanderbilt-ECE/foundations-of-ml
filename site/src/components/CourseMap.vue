@@ -1,5 +1,6 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { ref } from 'vue';
+import BorderGlow from './BorderGlow.vue';
 
 const units = [
   { num: 1, title: 'Mathematical Foundations', tag: 'Foundations', blurb: 'Linear algebra, calculus, and probability — the vocabulary everything else is written in.', href: 'mathematical-foundations/', available: false },
@@ -15,16 +16,9 @@ const units = [
   { num: 11, title: 'Capstone / Project Time', tag: 'Capstone', blurb: 'Build something real, present it, and put the whole course to use.', href: 'capstone/', available: false },
 ];
 
-const mouse = reactive({ x: 0, y: 0 });
 const hoveredId = ref(null);
 const toast = ref(null);
 let toastTimer = null;
-
-function handleMouseMove(e) {
-  const r = e.currentTarget.getBoundingClientRect();
-  mouse.x = (e.clientX - r.left) / r.width - 0.5;
-  mouse.y = (e.clientY - r.top) / r.height - 0.5;
-}
 
 function showToast(msg) {
   toast.value = msg;
@@ -40,11 +34,8 @@ function onUnitClick(unit) {
 </script>
 
 <template>
-  <div class="hero" @mousemove="handleMouseMove">
-    <div class="orb orb-1" :style="{ transform: `translate(${mouse.x * 30}px, ${mouse.y * 30}px)` }"></div>
-    <div class="orb orb-2" :style="{ transform: `translate(${mouse.x * -24}px, ${mouse.y * -24}px)` }"></div>
-
-    <div class="hero-text" :style="{ transform: `translate(${mouse.x * -10}px, ${mouse.y * -10}px)` }">
+  <div class="hero">
+    <div class="hero-text">
       <div class="eyebrow">Foundations of Machine Learning</div>
       <h1>From vectors to<br>working models.</h1>
       <p>Eleven units, one straight line from math to models that actually predict something. Pick a node below to start.</p>
@@ -72,20 +63,34 @@ function onUnitClick(unit) {
       <component
         :is="unit.available ? 'a' : 'div'"
         :href="unit.available ? unit.href : undefined"
-        class="card"
-        :class="{ hovered: hoveredId === unit.num, available: unit.available }"
+        class="card-link"
+        :class="{ available: unit.available }"
         @click="onUnitClick(unit)"
       >
-        <div class="card-top">
-          <div>
-            <div class="card-tag">{{ unit.tag }}</div>
-            <div class="card-title">{{ unit.title }}</div>
+        <BorderGlow
+          class-name="w-full"
+          background-color="#12161f"
+          :border-radius="14"
+          :glow-radius="22"
+          :glow-intensity="0.8"
+          :edge-sensitivity="25"
+          :cone-spread="30"
+          glow-color="195 90% 60%"
+          :colors="['#18549a', '#01b6d1', '#38bdf8']"
+        >
+          <div class="card" :class="{ hovered: hoveredId === unit.num }">
+            <div class="card-top">
+              <div>
+                <div class="card-tag">{{ unit.tag }}</div>
+                <div class="card-title">{{ unit.title }}</div>
+              </div>
+              <div class="card-status" :class="{ available: unit.available }">
+                {{ unit.available ? 'Available' : 'Coming soon' }}
+              </div>
+            </div>
+            <div class="card-blurb" :class="{ open: hoveredId === unit.num }">{{ unit.blurb }}</div>
           </div>
-          <div class="card-status" :class="{ available: unit.available }">
-            {{ unit.available ? 'Available' : 'Coming soon' }}
-          </div>
-        </div>
-        <div class="card-blurb" :class="{ open: hoveredId === unit.num }">{{ unit.blurb }}</div>
+        </BorderGlow>
       </component>
     </div>
   </div>
@@ -97,34 +102,7 @@ function onUnitClick(unit) {
 .hero {
   position: relative;
   padding: 110px 8vw 90px;
-  overflow: hidden;
   border-bottom: 1px solid #1c2130;
-}
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(12px);
-  pointer-events: none;
-  animation: floatOrb 8s ease-in-out infinite;
-}
-.orb-1 {
-  top: -60px;
-  left: 8vw;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle at 35% 35%, #6d5ef855, transparent 70%);
-}
-.orb-2 {
-  bottom: -80px;
-  right: 6vw;
-  width: 340px;
-  height: 340px;
-  background: radial-gradient(circle at 60% 40%, #c8ff4d33, transparent 70%);
-  animation-delay: -3s;
-}
-@keyframes floatOrb {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -18px; }
 }
 .hero-text { position: relative; max-width: 900px; }
 .eyebrow {
@@ -198,21 +176,20 @@ h1 {
 .node.hovered { transform: scale(1.08); }
 .node.hovered.available { box-shadow: 0 0 0 8px #6d5ef822; }
 
-.card {
+.card-link {
   flex: 1;
-  padding: 22px 26px;
-  border-radius: 14px;
-  background: #12161f;
-  border: 1px solid #1c2130;
-  cursor: default;
   text-decoration: none;
   color: inherit;
   display: block;
-  transition: background 0.3s ease, border-color 0.3s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: default;
 }
-.card.available { cursor: pointer; }
-.card.hovered { background: #161b27; transform: translateX(6px); border-color: #3a4058; }
-.card.hovered.available { border-color: #6d5ef8; }
+.card-link.available { cursor: pointer; }
+
+.card {
+  padding: 22px 26px;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card.hovered { transform: translateX(6px); }
 
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .card-tag {

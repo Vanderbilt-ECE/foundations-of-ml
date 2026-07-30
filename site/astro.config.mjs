@@ -3,9 +3,15 @@ import { defineConfig } from 'astro/config';
 
 import vue from '@astrojs/vue';
 
+import tailwindcss from '@tailwindcss/vite';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://vanderbilt-ece.github.io',
   base: '/foundations-of-ml',
-  integrations: [vue()]
+  integrations: [vue()],
+
+  vite: {
+    plugins: [tailwindcss()]
+  }
 });
