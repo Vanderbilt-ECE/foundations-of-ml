@@ -15,11 +15,37 @@ import CourseMap from '../components/CourseMap.vue';
 	</head>
 	<body>
 		<div class="page-bg" aria-hidden="true">
-			<div class="blob blob-1"></div>
-			<div class="blob blob-2"></div>
-			<div class="blob blob-3"></div>
+			<div class="blob blob-1" data-speed="0.4"></div>
+			<div class="blob blob-2" data-speed="-0.6"></div>
+			<div class="blob blob-3" data-speed="0.9"></div>
 		</div>
 		<CourseMap client:load />
+
+		<script>
+			// ponytail: direct scroll->transform, no lerp/smoothing library needed for a subtle parallax
+			const blobs = Array.from(document.querySelectorAll<HTMLElement>('.blob'));
+			let ticking = false;
+
+			function updateBlobs() {
+				const y = window.scrollY;
+				for (const blob of blobs) {
+					const speed = Number(blob.dataset.speed);
+					blob.style.transform = `translate3d(0, ${y * speed}px, 0)`;
+				}
+				ticking = false;
+			}
+
+			window.addEventListener(
+				'scroll',
+				() => {
+					if (!ticking) {
+						requestAnimationFrame(updateBlobs);
+						ticking = true;
+					}
+				},
+				{ passive: true },
+			);
+		</script>
 	</body>
 </html>
 
@@ -47,7 +73,8 @@ import CourseMap from '../components/CourseMap.vue';
 		position: absolute;
 		border-radius: 50%;
 		opacity: 0.35;
-		animation: drift 16s ease-in-out infinite;
+		transition: transform 0.2s linear;
+		will-change: transform;
 	}
 	.blob-1 {
 		top: -10%;
@@ -62,7 +89,6 @@ import CourseMap from '../components/CourseMap.vue';
 		width: 50vw;
 		height: 50vw;
 		background: linear-gradient(315deg, #18549a, #12238b);
-		animation-delay: -6s;
 	}
 	.blob-3 {
 		top: 40%;
@@ -71,10 +97,5 @@ import CourseMap from '../components/CourseMap.vue';
 		height: 26vw;
 		background: linear-gradient(to top, #01b6d1, #aaf7ff);
 		opacity: 0.18;
-		animation-delay: -11s;
-	}
-	@keyframes drift {
-		0%, 100% { transform: translate(0, 0); }
-		50% { transform: translate(2%, -3%); }
 	}
 </style>

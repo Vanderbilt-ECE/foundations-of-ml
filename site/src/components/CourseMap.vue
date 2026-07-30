@@ -1,40 +1,47 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import BorderGlow from './BorderGlow.vue';
 
+// ponytail: presentations/assignments/resources are placeholder arrays until
+// the deck-build pipeline (CI) is wired up to populate real links per unit.
 const units = [
-  { num: 1, title: 'Mathematical Foundations', tag: 'Foundations', blurb: 'Linear algebra, calculus, and probability — the vocabulary everything else is written in.', href: 'mathematical-foundations/', available: false },
-  { num: 2, title: 'Core ML Concepts', tag: 'Foundations', blurb: 'Bias vs. variance, train/test splits, and why models overfit in the first place.', href: 'core-ml-concepts/', available: false },
-  { num: 3, title: 'Supervised Learning: Regression', tag: 'Supervised', blurb: 'Linear and polynomial regression, regularization, and reading residuals.', href: 'supervised-learning-regression/', available: false },
-  { num: 4, title: 'Supervised Learning: Classification', tag: 'Supervised', blurb: 'Logistic regression, k-NN, and support vector machines.', href: 'supervised-learning-classification/', available: false },
-  { num: 5, title: 'Model Evaluation', tag: 'Evaluation', blurb: 'Accuracy is a trap. Precision, recall, ROC/AUC, and cross-validation.', href: 'model-evaluation/', available: false },
-  { num: 6, title: 'Ensemble Methods', tag: 'Advanced', blurb: 'Bagging, boosting, and random forests — many weak learners, one strong one.', href: 'ensemble-methods/', available: false },
-  { num: 7, title: 'Unsupervised Learning', tag: 'Unsupervised', blurb: 'Clustering, dimensionality reduction, and finding structure with no labels.', href: 'unsupervised-learning/', available: false },
-  { num: 8, title: 'Neural Networks & Deep Learning Basics', tag: 'Deep Learning', blurb: 'Perceptrons, backpropagation, and a first look at convolutional nets.', href: 'neural-networks/', available: false },
-  { num: 9, title: 'Optimization in Practice', tag: 'Deep Learning', blurb: 'Gradient descent variants, learning rates, and hyperparameter tuning.', href: 'optimization-in-practice/', available: false },
-  { num: 10, title: 'Broader Context', tag: 'Context', blurb: 'Fairness, ethics, and what happens when a model meets the real world.', href: 'broader-context/', available: false },
-  { num: 11, title: 'Capstone / Project Time', tag: 'Capstone', blurb: 'Build something real, present it, and put the whole course to use.', href: 'capstone/', available: false },
+  { num: 1, title: 'Mathematical Foundations', tag: 'Foundations', blurb: 'Linear algebra, calculus, and probability — the vocabulary everything else is written in.', presentations: [], assignments: [], resources: [] },
+  { num: 2, title: 'Core ML Concepts', tag: 'Foundations', blurb: 'Bias vs. variance, train/test splits, and why models overfit in the first place.', presentations: [], assignments: [], resources: [] },
+  { num: 3, title: 'Supervised Learning: Regression', tag: 'Supervised', blurb: 'Linear and polynomial regression, regularization, and reading residuals.', presentations: [], assignments: [], resources: [] },
+  { num: 4, title: 'Supervised Learning: Classification', tag: 'Supervised', blurb: 'Logistic regression, k-NN, and support vector machines.', presentations: [], assignments: [], resources: [] },
+  { num: 5, title: 'Model Evaluation', tag: 'Evaluation', blurb: 'Accuracy is a trap. Precision, recall, ROC/AUC, and cross-validation.', presentations: [], assignments: [], resources: [] },
+  { num: 6, title: 'Ensemble Methods', tag: 'Advanced', blurb: 'Bagging, boosting, and random forests — many weak learners, one strong one.', presentations: [], assignments: [], resources: [] },
+  { num: 7, title: 'Unsupervised Learning', tag: 'Unsupervised', blurb: 'Clustering, dimensionality reduction, and finding structure with no labels.', presentations: [], assignments: [], resources: [] },
+  { num: 8, title: 'Neural Networks & Deep Learning Basics', tag: 'Deep Learning', blurb: 'Perceptrons, backpropagation, and a first look at convolutional nets.', presentations: [], assignments: [], resources: [] },
+  { num: 9, title: 'Optimization in Practice', tag: 'Deep Learning', blurb: 'Gradient descent variants, learning rates, and hyperparameter tuning.', presentations: [], assignments: [], resources: [] },
+  { num: 10, title: 'Broader Context', tag: 'Context', blurb: 'Fairness, ethics, and what happens when a model meets the real world.', presentations: [], assignments: [], resources: [] },
+  { num: 11, title: 'Capstone / Project Time', tag: 'Capstone', blurb: 'Build something real, present it, and put the whole course to use.', presentations: [], assignments: [], resources: [] },
+];
+
+const tabs = [
+  { id: 'presentations', label: 'Presentations' },
+  { id: 'assignments', label: 'Assignments' },
+  { id: 'resources', label: 'Resources' },
 ];
 
 const hoveredId = ref(null);
-const toast = ref(null);
-let toastTimer = null;
+const selected = ref(null);
+const activeTab = ref('presentations');
 
-function showToast(msg) {
-  toast.value = msg;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (toast.value = null), 2200);
+const currentItems = computed(() => (selected.value ? selected.value[activeTab.value] : []));
+
+function selectUnit(unit) {
+  selected.value = unit;
+  activeTab.value = 'presentations';
 }
 
-function onUnitClick(unit) {
-  if (!unit.available) {
-    showToast(`Unit ${unit.num} — ${unit.title} is coming soon.`);
-  }
+function closePane() {
+  selected.value = null;
 }
 </script>
 
 <template>
-  <div class="hero">
+  <div class="hero" :class="{ collapsed: selected }">
     <div class="hero-text">
       <div class="eyebrow">Foundations of Machine Learning</div>
       <h1>From vectors to<br>working models.</h1>
@@ -42,60 +49,93 @@ function onUnitClick(unit) {
     </div>
   </div>
 
-  <div class="map">
-    <div class="spine"></div>
+  <div class="layout">
+    <div class="map" :class="{ compact: selected }">
+      <button v-if="selected" class="back" @click="closePane">&larr; All units</button>
 
-    <div
-      v-for="unit in units"
-      :key="unit.num"
-      class="row"
-      @mouseenter="hoveredId = unit.num"
-      @mouseleave="hoveredId = null"
-    >
-      <component
-        :is="unit.available ? 'a' : 'div'"
-        :href="unit.available ? unit.href : undefined"
-        class="node"
-        :class="{ hovered: hoveredId === unit.num, available: unit.available }"
-        @click="onUnitClick(unit)"
-      >{{ unit.num }}</component>
+      <div class="spine"></div>
 
-      <component
-        :is="unit.available ? 'a' : 'div'"
-        :href="unit.available ? unit.href : undefined"
-        class="card-link"
-        :class="{ available: unit.available }"
-        @click="onUnitClick(unit)"
+      <div
+        v-for="unit in units"
+        :key="unit.num"
+        class="row"
+        @mouseenter="hoveredId = unit.num"
+        @mouseleave="hoveredId = null"
       >
+        <button
+          class="node"
+          :class="{ hovered: hoveredId === unit.num, selected: selected?.num === unit.num }"
+          @click="selectUnit(unit)"
+        >{{ unit.num }}</button>
+
+        <button
+          class="card-link"
+          @click="selectUnit(unit)"
+        >
+          <BorderGlow
+            class-name="w-full"
+            background-color="#12161f"
+            :border-radius="14"
+            :glow-radius="22"
+            :glow-intensity="0.8"
+            :edge-sensitivity="25"
+            :cone-spread="30"
+            glow-color="195 90% 60%"
+            :colors="['#18549a', '#01b6d1', '#38bdf8']"
+          >
+            <div class="card" :class="{ hovered: hoveredId === unit.num }">
+              <div class="card-top">
+                <div>
+                  <div class="card-tag">{{ unit.tag }}</div>
+                  <div class="card-title">{{ unit.title }}</div>
+                </div>
+              </div>
+              <div class="card-blurb" :class="{ open: hoveredId === unit.num && !selected }">{{ unit.blurb }}</div>
+            </div>
+          </BorderGlow>
+        </button>
+      </div>
+    </div>
+
+    <Transition name="pane">
+      <div v-if="selected" class="pane" :key="selected.num">
         <BorderGlow
           class-name="w-full"
           background-color="#12161f"
-          :border-radius="14"
-          :glow-radius="22"
+          :border-radius="18"
+          :glow-radius="26"
           :glow-intensity="0.8"
-          :edge-sensitivity="25"
+          :edge-sensitivity="20"
           :cone-spread="30"
           glow-color="195 90% 60%"
           :colors="['#18549a', '#01b6d1', '#38bdf8']"
         >
-          <div class="card" :class="{ hovered: hoveredId === unit.num }">
-            <div class="card-top">
-              <div>
-                <div class="card-tag">{{ unit.tag }}</div>
-                <div class="card-title">{{ unit.title }}</div>
-              </div>
-              <div class="card-status" :class="{ available: unit.available }">
-                {{ unit.available ? 'Available' : 'Coming soon' }}
-              </div>
+          <div class="pane-inner">
+            <div class="pane-tag">{{ selected.tag }}</div>
+            <h2 class="pane-title">{{ selected.title }}</h2>
+            <p class="pane-blurb">{{ selected.blurb }}</p>
+
+            <div class="tabs">
+              <button
+                v-for="tab in tabs"
+                :key="tab.id"
+                class="tab"
+                :class="{ active: activeTab === tab.id }"
+                @click="activeTab = tab.id"
+              >{{ tab.label }}</button>
             </div>
-            <div class="card-blurb" :class="{ open: hoveredId === unit.num }">{{ unit.blurb }}</div>
+
+            <div class="tab-content">
+              <p v-if="!currentItems.length" class="empty">Nothing here yet — check back soon.</p>
+              <ul v-else class="item-list">
+                <li v-for="item in currentItems" :key="item.href"><a :href="item.href">{{ item.title }}</a></li>
+              </ul>
+            </div>
           </div>
         </BorderGlow>
-      </component>
-    </div>
+      </div>
+    </Transition>
   </div>
-
-  <div v-if="toast" class="toast">{{ toast }}</div>
 </template>
 
 <style scoped>
@@ -103,6 +143,16 @@ function onUnitClick(unit) {
   position: relative;
   padding: 110px 8vw 90px;
   border-bottom: 1px solid #1c2130;
+  max-height: 500px;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, padding 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  pointer-events: none;
 }
 .hero-text { position: relative; max-width: 900px; }
 .eyebrow {
@@ -130,12 +180,40 @@ h1 {
   margin: 0;
 }
 
+.layout {
+  display: flex;
+  align-items: flex-start;
+}
+
 .map {
+  position: relative;
+  flex: 1 1 auto;
   max-width: 1080px;
   margin: 0 auto;
   padding: 90px 8vw 140px;
-  position: relative;
+  transition: flex-basis 0.5s cubic-bezier(0.22, 1, 0.36, 1), max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
+.map.compact {
+  flex: 0 0 380px;
+  max-width: 380px;
+  margin: 0;
+  padding: 48px 24px 60px 8vw;
+}
+
+.back {
+  display: block;
+  margin-bottom: 24px;
+  background: none;
+  border: none;
+  color: #aab0c2;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+}
+.back:hover { color: #c8ff4d; }
+
 .spine {
   position: absolute;
   left: calc(8vw + 27px);
@@ -144,6 +222,8 @@ h1 {
   width: 2px;
   background: #232838;
 }
+.map.compact .spine { top: 76px; }
+
 .row {
   position: relative;
   display: flex;
@@ -165,31 +245,37 @@ h1 {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  text-decoration: none;
   cursor: pointer;
   background: #12161f;
   border: 2px solid #2c3244;
   color: #7c8199;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, background 0.3s ease, border-color 0.3s ease;
 }
-.node.available { background: #6d5ef8; border-color: #6d5ef8; color: #0a0d13; }
+.node.selected { background: #6d5ef8; border-color: #6d5ef8; color: #0a0d13; }
 .node.hovered { transform: scale(1.08); }
-.node.hovered.available { box-shadow: 0 0 0 8px #6d5ef822; }
+.node.hovered.selected { box-shadow: 0 0 0 8px #6d5ef822; }
 
 .card-link {
   flex: 1;
   text-decoration: none;
   color: inherit;
   display: block;
-  cursor: default;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
 }
-.card-link.available { cursor: pointer; }
 
 .card {
   padding: 22px 26px;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), padding 0.4s ease;
 }
 .card.hovered { transform: translateX(6px); }
+.map.compact .card { padding: 14px 18px; }
+.map.compact .card .card-title { font-size: 15px; }
+.map.compact .card .card-tag { font-size: 10px; margin-bottom: 3px; }
 
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .card-tag {
@@ -201,8 +287,6 @@ h1 {
   margin-bottom: 6px;
 }
 .card-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; color: #f4f3ef; }
-.card-status { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #5a6072; white-space: nowrap; }
-.card-status.available { color: #c8ff4d; }
 
 .card-blurb {
   overflow: hidden;
@@ -222,17 +306,62 @@ h1 {
   border-color: #232838;
 }
 
-.toast {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  translate: -50% 0;
-  background: #171c28;
-  border: 1px solid #2c3244;
+.pane {
+  flex: 1 1 auto;
+  padding: 48px 8vw 60px 24px;
+  min-width: 0;
+}
+.pane-enter-active { transition: opacity 0.4s ease 0.15s, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s; }
+.pane-leave-active { transition: opacity 0.2s ease; }
+.pane-enter-from { opacity: 0; transform: translateX(24px); }
+.pane-leave-to { opacity: 0; }
+
+.pane-inner { padding: 36px 40px; }
+.pane-tag {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7c8199;
+  margin-bottom: 10px;
+}
+.pane-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 14px;
   color: #f4f3ef;
-  padding: 14px 22px;
-  border-radius: 10px;
+}
+.pane-blurb { font-size: 16px; line-height: 1.55; color: #c3c8d6; margin: 0 0 32px; max-width: 640px; }
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #232838;
+  margin-bottom: 28px;
+}
+.tab {
+  background: none;
+  border: none;
+  font-family: inherit;
   font-size: 14px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  font-weight: 600;
+  color: #7c8199;
+  padding: 10px 18px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.tab:hover { color: #c3c8d6; }
+.tab.active { color: #c8ff4d; border-color: #c8ff4d; }
+
+.empty { color: #5a6072; font-size: 15px; }
+.item-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.item-list a { font-size: 15px; }
+
+@media (max-width: 860px) {
+  .layout { flex-direction: column; }
+  .map.compact { flex-basis: auto; max-width: none; width: 100%; padding: 32px 8vw; }
+  .pane { padding: 0 8vw 60px; }
 }
 </style>
