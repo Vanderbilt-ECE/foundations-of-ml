@@ -1,0 +1,29 @@
+---
+import CourseMap from '../components/CourseMap.vue';
+---
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Foundations of Machine Learning</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+	</head>
+	<body>
+		<CourseMap client:load />
+	</body>
+</html>
+
+<style is:global>
+	body {
+		margin: 0;
+		background: #0a0d13;
+		color: #f4f3ef;
+		font-family: 'Inter', sans-serif;
+	}
+	a { color: #6d5ef8; }
+	a:hover { color: #c8ff4d; }
+</style>
