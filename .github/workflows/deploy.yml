@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "*/Presentations/**"
+      - "slidev_template/**"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -20,16 +22,36 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: site
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci
-      - run: npx astro build
+
+      - name: Build course hub site
+        working-directory: site
+        run: |
+          npm ci
+          npx astro build
+
+      - name: Build presentation decks
+        run: |
+          set -e
+          npm ci --prefix slidev_template
+          slugify() { echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g'; }
+          find . -path "*/Presentations/*/slides.md" -print0 | while IFS= read -r -d '' slides; do
+            deck_dir=$(dirname "$slides")
+            unit_dir=$(dirname "$(dirname "$deck_dir")")
+            unit_slug=$(slugify "$(basename "$unit_dir")")
+            deck_slug=$(slugify "$(basename "$deck_dir")")
+            out="$GITHUB_WORKSPACE/site/dist/decks/$unit_slug/$deck_slug"
+            echo "Building $unit_dir / $(basename "$deck_dir") -> decks/$unit_slug/$deck_slug"
+            (cd "$deck_dir" && "$GITHUB_WORKSPACE/slidev_template/node_modules/.bin/slidev" build \
+              --base "/foundations-of-ml/decks/$unit_slug/$deck_slug/" \
+              --router-mode hash \
+              --out "$out")
+          done
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist

@@ -2,20 +2,31 @@
 import { ref, computed } from 'vue';
 import BorderGlow from './BorderGlow.vue';
 
-// ponytail: presentations/assignments/resources are placeholder arrays until
-// the deck-build pipeline (CI) is wired up to populate real links per unit.
+// ponytail: assignments/resources stay placeholder arrays until there's real
+// content for them. Presentation hrefs must match the slugs the CI workflow
+// (.github/workflows/deploy.yml) builds each Slidev deck into — same algorithm,
+// mirrored in bash there.
+function slugify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function presentationsFor(folder, titles) {
+  const unitSlug = slugify(folder);
+  return titles.map((title) => ({ title, href: `decks/${unitSlug}/${slugify(title)}/` }));
+}
+
 const units = [
-  { num: 1, title: 'Mathematical Foundations', tag: 'Foundations', blurb: 'Linear algebra, calculus, and probability — the vocabulary everything else is written in.', presentations: [], assignments: [], resources: [] },
-  { num: 2, title: 'Core ML Concepts', tag: 'Foundations', blurb: 'Bias vs. variance, train/test splits, and why models overfit in the first place.', presentations: [], assignments: [], resources: [] },
-  { num: 3, title: 'Supervised Learning: Regression', tag: 'Supervised', blurb: 'Linear and polynomial regression, regularization, and reading residuals.', presentations: [], assignments: [], resources: [] },
-  { num: 4, title: 'Supervised Learning: Classification', tag: 'Supervised', blurb: 'Logistic regression, k-NN, and support vector machines.', presentations: [], assignments: [], resources: [] },
-  { num: 5, title: 'Model Evaluation', tag: 'Evaluation', blurb: 'Accuracy is a trap. Precision, recall, ROC/AUC, and cross-validation.', presentations: [], assignments: [], resources: [] },
-  { num: 6, title: 'Ensemble Methods', tag: 'Advanced', blurb: 'Bagging, boosting, and random forests — many weak learners, one strong one.', presentations: [], assignments: [], resources: [] },
-  { num: 7, title: 'Unsupervised Learning', tag: 'Unsupervised', blurb: 'Clustering, dimensionality reduction, and finding structure with no labels.', presentations: [], assignments: [], resources: [] },
-  { num: 8, title: 'Neural Networks & Deep Learning Basics', tag: 'Deep Learning', blurb: 'Perceptrons, backpropagation, and a first look at convolutional nets.', presentations: [], assignments: [], resources: [] },
-  { num: 9, title: 'Optimization in Practice', tag: 'Deep Learning', blurb: 'Gradient descent variants, learning rates, and hyperparameter tuning.', presentations: [], assignments: [], resources: [] },
-  { num: 10, title: 'Broader Context', tag: 'Context', blurb: 'Fairness, ethics, and what happens when a model meets the real world.', presentations: [], assignments: [], resources: [] },
-  { num: 11, title: 'Capstone / Project Time', tag: 'Capstone', blurb: 'Build something real, present it, and put the whole course to use.', presentations: [], assignments: [], resources: [] },
+  { num: 1, title: 'Mathematical Foundations', folder: 'Mathematical Foundations', tag: 'Foundations', blurb: 'Linear algebra, calculus, and probability — the vocabulary everything else is written in.', presentations: presentationsFor('Mathematical Foundations', ['Linear Algebra', 'Calculus for Optimization', 'Probability and Stats']), assignments: [], resources: [] },
+  { num: 2, title: 'Core ML Concepts', folder: 'Core ML Concepts', tag: 'Foundations', blurb: 'Bias vs. variance, train/test splits, and why models overfit in the first place.', presentations: presentationsFor('Core ML Concepts', ['Types of Learning - Supervised, Unsupervised, Reinforcement', 'Loss Functions and Empirical Risk Minimization', 'Bias-Variance Tradeoff', 'Train-Validation-Test Splits and Cross-Validation', 'Overfitting and Regularization']), assignments: [], resources: [] },
+  { num: 3, title: 'Supervised Learning: Regression', folder: 'Supervised Learning - Regression', tag: 'Supervised', blurb: 'Linear and polynomial regression, regularization, and reading residuals.', presentations: presentationsFor('Supervised Learning - Regression', ['Linear Regression - Closed-Form and Gradient Descent', 'Polynomial Regression and Regularization']), assignments: [], resources: [] },
+  { num: 4, title: 'Supervised Learning: Classification', folder: 'Supervised Learning - Classification', tag: 'Supervised', blurb: 'Logistic regression, k-NN, and support vector machines.', presentations: presentationsFor('Supervised Learning - Classification', ['Logistic Regression', 'Decision Trees', 'Naive Bayes', 'Support Vector Machines and the Kernel Trick', 'k-Nearest Neighbors']), assignments: [], resources: [] },
+  { num: 5, title: 'Model Evaluation', folder: 'Model Evaluation', tag: 'Evaluation', blurb: 'Accuracy is a trap. Precision, recall, ROC/AUC, and cross-validation.', presentations: presentationsFor('Model Evaluation', ['Accuracy, Precision, Recall, F1, ROC-AUC', 'Common Pitfalls - Data Leakage and Class Imbalance', 'Confusion Matrices', 'Statistical Significance in Model Comparison']), assignments: [], resources: [] },
+  { num: 6, title: 'Ensemble Methods', folder: 'Ensemble Methods', tag: 'Advanced', blurb: 'Bagging, boosting, and random forests — many weak learners, one strong one.', presentations: presentationsFor('Ensemble Methods', ['Bagging and Random Forests', 'Boosting (AdaBoost, Gradient Boosting)', 'Why Ensembles Work']), assignments: [], resources: [] },
+  { num: 7, title: 'Unsupervised Learning', folder: 'Unsupervised Learning', tag: 'Unsupervised', blurb: 'Clustering, dimensionality reduction, and finding structure with no labels.', presentations: presentationsFor('Unsupervised Learning', ['Dimensionality Reduction - PCA, t-SNE, UMAP', 'Gaussian Mixture Models', 'k-Means and Hierarchical Clustering']), assignments: [], resources: [] },
+  { num: 8, title: 'Neural Networks & Deep Learning Basics', folder: 'Neural Networks and Deep Learning Basics', tag: 'Deep Learning', blurb: 'Perceptrons, backpropagation, and a first look at convolutional nets.', presentations: presentationsFor('Neural Networks and Deep Learning Basics', ['Perceptrons and Multilayer Networks', 'Activation Functions and Initialization', 'Backpropagation', 'Practical Training Issues - Vanishing Gradients, Batch Norm, Dropout', 'Convolutional Neural Networks', 'RNNs and LSTMs', 'CNNs and RNNs (Light Touch)']), assignments: [], resources: [] },
+  { num: 9, title: 'Optimization in Practice', folder: 'Optimization in Practice', tag: 'Deep Learning', blurb: 'Gradient descent variants, learning rates, and hyperparameter tuning.', presentations: presentationsFor('Optimization in Practice', ['Gradient Descent Variants - SGD, Momentum, Adam', 'Hyperparameter Tuning Strategies']), assignments: [], resources: [] },
+  { num: 10, title: 'Broader Context', folder: 'Broader Context', tag: 'Context', blurb: 'Fairness, ethics, and what happens when a model meets the real world.', presentations: presentationsFor('Broader Context', ['Where Classical ML Ends and Modern Deep Learning Begins', 'Fairness, Bias, and Interpretability', 'Ethical Considerations and Failure Modes']), assignments: [], resources: [] },
+  { num: 11, title: 'Capstone / Project Time', folder: 'Capstone - Project Time', tag: 'Capstone', blurb: 'Build something real, present it, and put the whole course to use.', presentations: presentationsFor('Capstone - Project Time', ['End-to-End Project Guide']), assignments: [], resources: [] },
 ];
 
 const tabs = [
@@ -128,7 +139,9 @@ function closePane() {
               <div class="tab-content">
                 <p v-if="!currentItems.length" class="empty">Nothing here yet — check back soon.</p>
                 <ul v-else class="item-list">
-                  <li v-for="item in currentItems" :key="item.href"><a :href="item.href">{{ item.title }}</a></li>
+                  <li v-for="item in currentItems" :key="item.href">
+                    <a :href="item.href" target="_blank" rel="noopener">{{ item.title }}</a>
+                  </li>
                 </ul>
               </div>
             </div>
