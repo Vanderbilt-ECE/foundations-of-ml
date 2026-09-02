@@ -76,13 +76,19 @@ glowSeed: 222
 </div>
 
 <!--
-The dartboard is the single mental image to keep for this whole topic. Imagine retraining the exact same learning procedure — same algorithm, same hyperparameters — on many different random samples drawn from the same population, and plotting one prediction (one dart throw) from each resulting model. Bias measures where the *center* of the cluster of throws lands relative to the bullseye (the true value): low bias means the average throw is close to the target, high bias means the thrower has a systematic aim problem. Variance measures how *spread out* the throws are around their own center, regardless of where that center is: low variance means throws land close together, high variance means they scatter widely from throw to throw.
+Walk through all four quadrants of the dartboard explicitly.
 
-Walk through all four quadrants explicitly. Top-left (low bias, low variance): accurate and consistent — this is the goal. Top-right (low bias, high variance): correct on average but individual throws are unpredictable — this is a classic overfitting signature, like a high-degree polynomial that happens to average out correctly across many resamples but wildly disagrees with itself on any single sample. Bottom-left (high bias, low variance): consistently wrong in the same way every time — this is underfitting, like fitting a straight line to a strongly curved relationship; it is reliable, but reliably incorrect. Bottom-right (high bias, high variance): the worst case, wrong and unpredictable.
+Bias and variance are properties of a *training procedure* (an algorithm plus its hyperparameters, applied to random samples of a given size), not properties of one single fitted model. 
 
-Critical point to hammer here: bias and variance are properties of a *training procedure* (an algorithm plus its hyperparameters, applied to random samples of a given size), not properties of one single fitted model. You cannot look at one trained model in isolation and say "this has high variance" — you can only say that about the *process* that produced it, evaluated across hypothetical resamples.
+You cannot look at one trained model in isolation and say "this has high variance" — you can only say that about the *process* that produced it, evaluated across hypothetical resamples.
 
-Common misconception to flag now, before it hardens: students often say "overfitting" and "high variance" as if they were two different problems. They describe the same phenomenon from two angles — overfitting is what you observe (the model fits training noise, so training error is far below validation error), and high variance is the statistical explanation for why it happens (small changes in the training sample produce large changes in the fitted function). Similarly, underfitting and high bias are the same phenomenon: underfitting is the observed symptom, high bias is the explanation.
+Overfitting and high variance are two sides of the same coin. 
+- Overfitting is what you observe (the model fits training noise, so training error is far below validation error), 
+- High variance is the statistical explanation for why it happens (small changes in the training sample produce large changes in the fitted function). 
+
+Similarly, underfitting and high bias are the same phenomenon: 
+- underfitting is the observed symptom,
+- high bias is the explanation.
 -->
 
 ---
@@ -118,13 +124,10 @@ Chases every noisy point
 <!--
 Have students identify the three curves before naming them — cover the labels and ask which curve is which, and why. The gray dots are the same fixed training sample in all three panels; only the fitted curve (the model) changes.
 
-Left panel: a straight line fit to data that is clearly curved. This is underfitting — the model's hypothesis class (straight lines) is too restrictive to represent the true relationship no matter how the coefficients are chosen. This is high bias: even with infinite training data of this size, a linear model would still systematically miss the curvature. Notice the line misses almost every point by a similar systematic amount — that systematic miss is the visual signature of bias.
-
-Middle panel: a smooth curve that tracks the general upward-then-down shape without chasing each individual point. This is the target: it captures the signal (the smooth trend) while ignoring the noise (the point-to-point jitter). Critically, the middle curve does *not* have the lowest training error of the three — the rightmost curve does, because it interpolates the training points almost exactly. The middle curve wins on *future*, unseen data, which is the only kind of performance that matters in practice.
-
-Right panel: a wiggly curve that bends to pass near almost every single point, including the noisy ones. This is overfitting — the model has enough flexibility to fit the idiosyncrasies of this particular sample, including random noise that will not repeat in a new sample. If you resampled the data and refit, this curve would look completely different each time — that instability is variance made visible.
-
-Emphasize the general rule stated at the bottom: increasing model flexibility (more polynomial terms, deeper trees, more neighbors considered, less regularization) tends to reduce bias — the model can represent more shapes — while it tends to increase variance — the model has more freedom to react to noise. Flexibility is not free; it is traded for stability. Transition: this qualitative picture is what we will now make precise algebraically.
+Increasing model flexibility (more parameters) tends to reduce bias 
+- The model can represent more shapes 
+- while it tends to increase variance 
+- the model has more freedom to react to noise. 
 -->
 
 ---
@@ -173,13 +176,25 @@ $$\mathbb E\!\left[(y_0-\hat f(x_0))^2\right] \quad \text{expectation over new t
 </div>
 
 <!--
-Define every symbol before moving on. $y$ is the observed target value we actually measure. $f(x)$ is the true, unknown function describing how the target depends on the input on average — it is the thing we are trying to learn but never get to see directly. $\epsilon$ is irreducible noise: randomness in the data-generating process itself (measurement error, unmeasured factors, inherent randomness) that no model, however good, can predict away. $\mathbb{E}[\epsilon]=0$ says the noise has no systematic direction — it does not on average push $y$ up or down. $\operatorname{Var}(\epsilon)=\sigma^2$ says the noise has a fixed spread, denoted $\sigma^2$, which becomes the noise floor in the decomposition two slides from now.
+Define every symbol before moving on -
+- $y$ is the observed target value we actually measure. 
+- $f(x)$ is the true, unknown function describing how the target depends on the input on average — it is the thing we are trying to learn but never get to see directly. 
+- $\epsilon$ is irreducible noise: randomness in the data-generating process itself.
+- $\mathbb{E}[\epsilon]=0$ says the noise has no systematic direction — it does not on average push $y$ up or down. 
+- $\operatorname{Var}(\epsilon)=\sigma^2$ says the noise has a fixed spread, denoted $\sigma^2$.
+- $\hat f$ is our *fitted* model — the function we get out after running a learning algorithm on one particular training set. 
 
-$\hat f$ (read "f-hat") is our *fitted* model — the function we get out after running a learning algorithm on one particular training set. The hat notation throughout statistics and ML means "estimated from data," as opposed to the true, unobserved quantity underneath. Because the training set is drawn randomly, $\hat f$ itself is a random object: if you drew a different training set from the same population, you would fit a different $\hat f$. This is the key conceptual move of the whole topic — stop thinking about $\hat f$ as one fixed function, and start thinking about the *distribution* of possible $\hat f$'s induced by resampling the training data.
+The hat notation throughout statistics and ML means "estimated from data," as opposed to the true, unobserved quantity underneath. 
 
-The right panel shows this directly: the true function $f(x)$ (teal) is fixed, but three different training samples (implied by the gray dots) each produce a different fitted curve (blue and amber). $x_0$ is one fixed evaluation point — we ask "how does the model's prediction at this one point vary across different training sets?"
+Because the training set is drawn randomly, $\hat f$ itself is a random object: if you drew a different training set from the same population, you would fit a different $\hat f$.
 
-The boxed expectation $\mathbb{E}[(y_0-\hat f(x_0))^2]$ is the *expected squared prediction error at $x_0$*, where the expectation is taken over two independent sources of randomness simultaneously: which training set got drawn, and what the fresh noise draw $\epsilon$ at the test point happens to be. This double expectation is what we decompose into three interpretable pieces starting next slide. Transition: to split this expectation into pieces, we use one algebraic trick — adding and subtracting the same quantity.
+The boxed expectation $\mathbb{E}[(y_0-\hat f(x_0))^2]$ is the *expected squared prediction error at $x_0$*, 
+
+The expectation is taken over two independent sources of randomness simultaneously: 
+- which training set got drawn,
+- what the fresh noise draw $\epsilon$ at the test point happens to be. 
+
+This double expectation is what we decompose into three interpretable pieces starting next slide. Transition: to split this expectation into pieces, we use one algebraic trick — adding and subtracting the same quantity.
 -->
 
 ---
@@ -188,9 +203,9 @@ glowSeed: 225
 
 # Decomposition: Add Zero in a Useful Form
 
-<div class="mt-8 text-center">
+<div class="h-8"></div>
 
-$$
+$$ {hide|1|all}
 \begin{aligned}
 y_0-\hat f(x_0)
 &= f(x_0)+\epsilon-\hat f(x_0) \\
@@ -200,26 +215,32 @@ y_0-\hat f(x_0)
 \end{aligned}
 $$
 
-</div>
-
 <div class="grid grid-cols-3 gap-4 mt-10 text-center">
 <div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4><div class="font-bold text-blue-300">Bias</div><div class="text-sm opacity-75 mt-2">mean prediction misses truth</div></div>
 <div v-click border="2 solid orange-800" bg="orange-800/20" rounded-lg p-4><div class="font-bold text-orange-300">Variance</div><div class="text-sm opacity-75 mt-2">fits change with the sample</div></div>
 <div v-click border="2 solid white/10" bg="white/5" rounded-lg p-4><div class="font-bold">Noise</div><div class="text-sm opacity-75 mt-2">outcomes vary even at fixed x</div></div>
 </div>
 
+<style>
+.slidev-katex-wrapper .mord.dishonored {
+  opacity: 0;
+}
+</style>
+
 <!--
-Walk through this line by line. We start from the raw prediction error $y_0-\hat f(x_0)$ and substitute $y_0=f(x_0)+\epsilon$ from the previous slide's data-generating model — this is just algebraic substitution, nothing new yet.
+We start from the raw prediction error $y_0-\hat f(x_0)$ and substitute $y_0=f(x_0)+\epsilon$
 
-The key trick, common throughout statistics whenever you need to decompose an error into interpretable pieces, is adding and subtracting the same quantity so nothing changes numerically but new structure appears. Here we add and subtract $\mathbb{E}[\hat f(x_0)]$ — the *average prediction the procedure would make at $x_0$ if you could retrain on infinitely many training sets and average the results*. That average prediction is a fixed, non-random number (even though any single $\hat f(x_0)$ is random), so it is a legitimate quantity to insert.
+Here we add and subtract $\mathbb{E}[\hat f(x_0)]$ — the *average prediction the procedure would make at $x_0$ if you could retrain on infinitely many training sets and average the results*. 
 
-This regroups the single error term into three pieces, each with a clean interpretation, labeled directly under the braces on the slide:
+That average prediction is a fixed, non-random number (even though any single $\hat f(x_0)$ is random), so it is a legitimate quantity to insert.
 
 1. $f(x_0)-\mathbb{E}[\hat f(x_0)]$ — the **systematic offset**: how far the procedure's *average* prediction sits from the truth. This piece does not depend on which training set you happened to draw; it is a fixed property of the learning procedure and the true function. This becomes the bias term.
 2. $\mathbb{E}[\hat f(x_0)]-\hat f(x_0)$ — the **sample-to-sample fluctuation**: how far *this particular* fitted model's prediction deviates from the procedure's average prediction. This piece is random — it changes every time you redraw the training set — and by construction its expectation over training sets is exactly zero, since $\mathbb E[\hat f(x_0)]$ is subtracted from itself in expectation.
 3. $\epsilon$ — the noise, already defined as mean-zero and independent of the training data.
 
-Common misconception: students sometimes think bias is about the model performing badly on the training set, and variance is about performing badly on the test set. That is not quite right — both bias and variance are about the *test point* $x_0$; the distinction is whether the error is systematic across resamples (bias) or fluctuates across resamples (variance). Transition: next we square this expression and take expectations, and something convenient happens — the cross terms between bias, fluctuation, and noise all disappear.
+Common misconception: students sometimes think bias is about the model performing badly on the training set, and variance is about performing badly on the test set. That is not quite right — both bias and variance are about the *test point* $x_0$; the distinction is whether the error is systematic across resamples (bias) or fluctuates across resamples (variance). 
+
+Transition: next we square this expression and take expectations, and something convenient happens — the cross terms between bias, fluctuation, and noise all disappear.
 -->
 
 ---
@@ -244,22 +265,22 @@ $$
 <div class="grid grid-cols-2 gap-4 mt-6 text-sm">
 
 <div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-3>
-$\mathbb E[b^2]=b^2$ — constant, survives as bias²
+<Latex expression="\mathbb E[b^2]=b^2" /> — constant, survives as bias²
 </div>
 <div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-3>
-$\mathbb E[v^2]=\operatorname{Var}(\hat f(x_0))$ — survives as variance
+<Latex expression="\mathbb E[v^2]=\operatorname{Var}(\hat f(x_0))" /> — survives as variance
 </div>
 <div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-3>
-$\mathbb E[\epsilon^2]=\sigma^2$ — survives as noise
+<Latex expression="\mathbb E[\epsilon^2]=\sigma^2" /> — survives as noise
 </div>
 <div v-click border="2 solid red-800" bg="red-800/20" rounded-lg p-3>
-$\mathbb E[2bv]=\mathbb E[2b\epsilon]=\mathbb E[2v\epsilon]=0$ — all three cancel
+<Latex expression="\mathbb E[2bv]=\mathbb E[2b\epsilon]=\mathbb E[2v\epsilon]=0" /> — all three cancel
 </div>
 
 </div>
 
 <div v-click class="mt-5 text-center text-sm opacity-80">
-$b$ is a constant, so $\mathbb E[bv]=b\,\mathbb E[v]=0$ since $\mathbb E[v]=0$ by construction. $\mathbb E[b\epsilon]=b\,\mathbb E[\epsilon]=0$ since $\mathbb E[\epsilon]=0$. $\mathbb E[v\epsilon]=\mathbb E[v]\,\mathbb E[\epsilon]=0$ since $v$ (a property of the training sample) and $\epsilon$ (fresh test-point noise) are independent, and each already has mean zero.
+<Latex expression="b" /> is a constant, so <Latex expression="\mathbb E[bv]=b\,\mathbb E[v]=0" /> since <Latex expression="\mathbb E[v]=0" /> by construction. <Latex expression="\mathbb E[b\epsilon]=b\,\mathbb E[\epsilon]=0" /> since <Latex expression="\mathbb E[\epsilon]=0" />. <Latex expression="\mathbb E[v\epsilon]=\mathbb E[v]\,\mathbb E[\epsilon]=0" /> since <Latex expression="v" /> (a property of the training sample) and <Latex expression="\epsilon" /> (fresh test-point noise) are independent, and each already has mean zero.
 </div>
 
 <!--
@@ -280,12 +301,10 @@ glowSeed: 226
 
 <div class="mt-10" border="2 solid white/10" bg="white/5" backdrop-blur-sm rounded-lg px-6 py-6>
 
-$$
-\mathbb E[(y_0-\hat f(x_0))^2]
-= \underbrace{\sigma^2}_{\text{irreducible noise}}
-+ \underbrace{\left(f(x_0)-\mathbb E[\hat f(x_0)]\right)^2}_{\text{bias}^2}
-+ \underbrace{\mathbb E\!\left[(\hat f(x_0)-\mathbb E[\hat f(x_0)])^2\right]}_{\text{variance}}
-$$
+<Latex
+  display
+  expression="\mathbb E[(y_0-\hat f(x_0))^2] = \underbrace{\sigma^2}_{\text{irreducible noise}} + \underbrace{\left(f(x_0)-\mathbb E[\hat f(x_0)]\right)^2}_{\text{bias}^2} + \underbrace{\mathbb E\!\left[(\hat f(x_0)-\mathbb E[\hat f(x_0)])^2\right]}_{\text{variance}}"
+/>
 
 </div>
 
@@ -296,9 +315,9 @@ $$
 </div>
 
 <!--
-Read the identity term by term. $\mathbb E[(y_0-\hat f(x_0))^2]$, the left side, is the expected squared error at test point $x_0$, averaged over both which training set was drawn and the fresh noise at the test point — exactly what we defined two slides ago. It equals the sum of three non-negative pieces.
+$\mathbb E[(y_0-\hat f(x_0))^2]$ is the expected squared error at test point $x_0$, averaged over both which training set was drawn and the fresh noise at the test point.
 
-$\sigma^2$, irreducible noise: the variance of the label-generating noise itself. No choice of model, no amount of data, and no amount of cleverness can push this term below its true value, because it reflects randomness in the world, not a deficiency of the model. This is the noise floor — the best achievable expected squared error at $x_0$, even by the true function $f$ itself.
+$\sigma^2$, irreducible noise: the variance of the label-generating noise itself. No choice of model, no amount of data, and no amount of cleverness can push this term below its true value, because it reflects randomness in the world, not a deficiency of the model.
 
 $(f(x_0)-\mathbb E[\hat f(x_0)])^2$, bias squared: the square of the systematic offset from two slides ago. This is zero only if the learning procedure's average prediction exactly equals the truth. A straight line trying to fit a quadratic relationship has nonzero bias at essentially every $x_0$, no matter how much data you give it, because the hypothesis class itself cannot represent the true curve.
 
@@ -315,7 +334,7 @@ glowSeed: 227
 
 # Estimating Bias and Variance by Repeated Fitting
 
-```python {1-2|4-5|7-10|12-13|all}
+```python {1|2|3|4|6|7|8|9|10|11|12|13|14|16|17}
 import numpy as np
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
@@ -338,11 +357,21 @@ variance = np.var(predictions)
 <div v-click class="mt-4 text-sm opacity-80 text-center">The mathematical expectation becomes an ordinary average over many simulated training sets.</div>
 
 <!--
-This simulation makes the abstract expectation concrete: 500 resamples stand in for the mathematical expectation, and `np.mean` / `np.var` across those 500 fitted predictions stand in for $\mathbb E[\cdot]$ and $\operatorname{Var}(\cdot)$. We evaluate every model at the same fixed point $x_0=0.5$ so the only thing changing across the 500 iterations is which random training sample got drawn — exactly matching the formal setup.
-
-Walk through the code block by block, matching the click groups: lines 1-2 import numpy and set up polynomial features and linear regression, the modeling ingredients. Lines 4-5 define the true signal $f(x)=\sin(1.5\pi x)$ and the container for the 500 point predictions. Lines 7-10 are the resampling loop: each iteration draws a *fresh* 20-point training sample with fresh noise (`scale=.2` means $\sigma=0.2$, so $\sigma^2=0.04$), fits a degree-1 (straight-line) polynomial model, and records its single prediction at $x_0=0.5$. Lines 12-13 compute the empirical bias² and variance exactly as the formulas define them, but using sample statistics instead of true expectations.
-
-Worked numbers from running this exact code with degree varied: $f(0.5)=\sin(0.75\pi)\approx0.707$. At degree 1 (straight line, too rigid for a sine curve): mean prediction ≈0.238, so bias²≈(0.707-0.238)²≈0.220, while variance≈0.013 — high bias, low variance, matching the underfit corner of the dartboard. At degree 3: mean prediction ≈0.652, bias²≈0.003, variance≈0.005 — both small, the sweet spot. At degree 10 (a very flexible curve for only 20 points): mean prediction ≈0.701, bias²≈0.00004 (essentially zero), but variance jumps to ≈0.022 — the classic overfit signature, low bias, high variance. Note the total (bias²+variance+noise σ²=0.04) falls from about 0.273 at degree 1 to about 0.048 at degree 3 and rises again to about 0.062 at degree 10 — a numeric U-shape, previewing the next slide's curve.
+- Imports NumPy for arrays, random sampling, averaging, variance, sine, and π.
+- Imports a transformer that converts each input $x$ into polynomial features. With degree 1, the features represent a straight-line model.
+- Imports ordinary least-squares linear regression.
+- Imports a helper that connects feature transformation and regression into one model.
+- Creates a random-number generator. Seed `0` makes the experiment reproducible.
+- Defines the true, noise-free relationship: $f(x)=\sin(1.5\pi x)$. Because it uses NumPy, it works with either one value or an array.
+- Creates an empty list that will store one prediction from each fitted model.
+- Repeats the experiment 500 times. Each repetition represents drawing a different training set. The underscore means the loop counter itself is not needed.
+- Draws 20 random input values uniformly between 0 and 1.
+- Calculates the true response at each input and adds independent Gaussian noise: $y_i=f(x_i)+\epsilon_i$, where $\epsilon_i\sim N(0,0.2^2)$.
+- Constructs a degree-1 polynomial regression model—a straight line. This model is deliberately too rigid to represent the curved sine function well.
+- Fits the model to the current training set. `x[:, None]` reshapes `x` from shape `(20,)` into `(20, 1)`, because scikit-learn expects rows to be observations and columns to be features.
+- Uses the fitted model to predict at the fixed point $x_0=0.5$, extracts the single predicted value, and saves it. After the loop, there are 500 predictions—one from each independently fitted model.
+- Averages the 500 predictions, compares that average prediction with the true value $f(0.5)$, and squares the difference: $\widehat{\operatorname{Bias}}^2=\left(\overline{\hat f(0.5)}-f(0.5)\right)^2$.
+- Measures how much the 500 predictions vary across training sets: $\widehat{\operatorname{Var}}=\frac{1}{500}\sum_{j=1}^{500}\left(\hat f_j(0.5)-\overline{\hat f(0.5)}\right)^2$.
 -->
 
 ---

@@ -60,6 +60,7 @@ function closePane() {
         <div class="eyebrow">Foundations of Machine Learning</div>
         <h1>From vectors to<br>working models.</h1>
         <p>Eleven units, one straight line from math to models that actually predict something. Pick a node below to start.</p>
+        <a class="welcome-link" href="decks/welcome/course-introduction/" target="_blank" rel="noopener">Start with the course introduction &rarr;</a>
       </div>
     </div>
 
@@ -204,6 +205,17 @@ h1 {
   max-width: 560px;
   margin: 0;
 }
+
+.welcome-link {
+  display: inline-block;
+  margin-top: 28px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #c8ff4d;
+  text-decoration: none;
+}
+.welcome-link:hover { color: #6d5ef8; }
 
 .layout {
   display: flex;

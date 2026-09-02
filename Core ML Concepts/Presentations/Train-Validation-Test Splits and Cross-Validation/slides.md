@@ -83,6 +83,7 @@ The chart makes this visceral: the orange curve achieves essentially zero traini
 
 ---
 glowSeed: 243
+disabled: true
 ---
 
 # Memorization in Five Lines
@@ -191,18 +192,12 @@ X_train, X_val, y_train, y_val = train_test_split(
 print(len(X_train), len(X_val), len(X_test))  # 60 / 20 / 20
 ```
 
-<div v-click class="mt-5 grid grid-cols-3 gap-4 text-center text-sm">
-<div border="2 solid teal-800" bg="teal-800/20" rounded-lg p-3>fit many times</div>
-<div border="2 solid blue-800" bg="blue-800/20" rounded-lg p-3>inspect many times</div>
-<div border="2 solid orange-800" bg="orange-800/20" rounded-lg p-3>inspect once</div>
-</div>
-
 <!--
 This slide is the mechanical "how" behind the previous slide's three-way split. The key idea, easy to get wrong: `train_test_split` only ever splits whatever data you hand it into two pieces, so a three-way split requires calling it twice. First call: split off the test set from the full dataset (`test_size=.20` takes 20% of the original data and locks it away as `X_test`/`y_test`, leaving `X_pool`/`y_pool` holding the remaining 80%). Second call: split that 80% pool again into training and validation.
 
 Walk through the arithmetic explicitly, since it is the single most common ratio mistake students make: `test_size=.25` in the second call takes 25% of the *pool*, not 25% of the original dataset. The pool is already only 80% of the original, so 25% of 80% is 0.25 × 0.80 = 0.20, i.e. 20% of the original data — matching the "60/20/20" comment in the code. A student who wants a clean 60/20/20 split and naively uses `test_size=.20` on the second call (reasoning "I want 20% for validation") would actually get 0.20 × 0.80 = 16% of the original data for validation and end up with 64% for training — a subtly wrong split that silently changes the experiment's effective ratios. The general formula worth writing on the board: if you want fractions $(p_{train}, p_{val}, p_{test})$ of the original data with $p_{train}+p_{val}+p_{test}=1$, the second call's `test_size` should be $p_{val}/(p_{train}+p_{val})$, i.e. the validation fraction relative to what remains after removing the test set.
 
-The three labels under the code — "fit many times," "inspect many times," "inspect once" — summarize each band's access pattern in one phrase and are worth repeating verbatim, since they are the operational definition of train/validation/test that will recur for the rest of the deck. Transition: this static three-way split still throws away information (the validation set is never used for training) and is sensitive to exactly which rows happened to land in which band — but before addressing that, the next slide covers a different failure mode: how the split itself can silently leak information across boundaries.
+Transition: this static three-way split still throws away information (the validation set is never used for training) and is sensitive to exactly which rows happened to land in which band — but before addressing that, the next slide covers a different failure mode: how the split itself can silently leak information across boundaries.
 -->
 
 ---
@@ -228,21 +223,12 @@ Split first; fit preprocessing on training folds only; transform held-out rows.
 </div>
 </div>
 
-```python {1|3-6|all}
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import Ridge
-
-model = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
-model.fit(X_train, y_train)  # scaler sees training rows only
-```
-
 <div v-click class="mt-4 text-center text-sm opacity-80">Split by patient, user, device, or time when rows are not independent.</div>
 
 <!--
 Data leakage is the failure mode this entire deck exists to prevent, and it is worth stating plainly: leakage means information from outside the training data — most dangerously, information derived from the test set — influences the model or the modeling decisions, silently inflating the reported performance so it no longer reflects true generalization. The leaky workflow on the left is a common, easy-to-miss mistake: computing a `StandardScaler`'s mean and standard deviation (or selecting features by correlation with the label) using *all* rows, including the ones that will later become the test set, before splitting. Even though the model itself never sees the test labels directly, the scaler's mean/variance were computed partly from test rows, so the transformed training data already carries a small amount of test-set information baked into it — this is leakage even though it looks harmless.
 
-The safe workflow flips the order: split first, then fit any preprocessing step (scaling, imputation, feature selection) using only the training partition, and apply that already-fitted transformation to the held-out rows without refitting it on them. The code example shows why `Pipeline` is the practical tool for enforcing this discipline automatically: `make_pipeline(StandardScaler(), Ridge(alpha=1.0))` bundles the scaler and the model into one object, and calling `.fit(X_train, y_train)` guarantees the scaler's statistics are computed from `X_train` alone — the pipeline makes it structurally impossible to accidentally fit the scaler on test rows. This matters even more under cross-validation (next slides): without a pipeline, a scaler fit once on the whole training pool before the CV loop would leak information across folds, since each fold's "held-out" portion would have already influenced the scaler that transforms it.
+The safe workflow flips the order: split first, then fit any preprocessing step (scaling, imputation, feature selection) using only the training partition, and apply that already-fitted transformation to the held-out rows without refitting it on them. A `Pipeline` is the practical tool for enforcing this discipline automatically: bundling the preprocessing and model into one object ensures each transformation is fit from training rows alone. This matters even more under cross-validation (next slides): without a pipeline, a scaler fit once on the whole training pool before the CV loop would leak information across folds, since each fold's "held-out" portion would have already influenced the scaler that transforms it.
 
 The closing line — "split by patient, user, device, or time when rows are not independent" — previews a second leakage channel covered later ("The Split Must Match the Data"): even a leakage-free preprocessing pipeline can still leak if a random shuffle puts two rows from the same patient into different folds, since the model can partly "recognize" that patient rather than generalize to new ones. Transition: leakage aside, a single validation split has its own weakness — it depends on which specific rows happened to land in which partition, which the next slide quantifies.
 -->
@@ -302,14 +288,16 @@ glowSeed: 249
 </template>
 </div>
 
-<div v-click class="mt-3" border="2 solid white/5" bg="white/5" rounded-lg py-1.5 px-3>
+<div v-click class="mt-3 text-center" border="2 solid white/5" bg="white/5" rounded-lg py-1.5 px-3>
 
 $\displaystyle \text{CV error}=\frac{1}{k}\sum_{i=1}^{k}\text{Error}_i$
 
 </div>
 
 <div v-click class="mt-2 text-center text-sm opacity-75">
+
 Worked example, $k=5$, ridge regression: fold errors $[0.0176,\,0.0163,\,0.0144,\,0.0199,\,0.0161]$ → $\text{CV error}=\frac{0.0176+0.0163+0.0144+0.0199+0.0161}{5}\approx0.0169$
+
 </div>
 
 <div v-click class="mt-2 text-center text-sm opacity-80">Every row is validated once and used for training k − 1 times.</div>

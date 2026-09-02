@@ -133,7 +133,9 @@ $$-\log p(y\mid X,\theta)-\log p(\theta)$$
 </div>
 
 <div v-click class="mt-8" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-6 py-5 text-center text-xl>
+
 When $\lambda R(\theta)=-\log p(\theta)$, regularized fitting is <strong>MAP estimation</strong>.
+
 </div>
 
 <div v-click class="mt-5 grid grid-cols-2 gap-4 text-center text-sm">
@@ -146,6 +148,80 @@ Two ways to arrive at the exact same optimization problem. The optimization view
 The Bayesian view treats regularization as a modeling choice made *before* seeing any data: place a prior distribution $p(\theta)$ over plausible parameter values, encoding a belief such as "weights are probably small and near zero," then combine that prior with the data via Bayes' rule. The quantity we then maximize is the posterior $p(\theta\mid y,X)\propto p(y\mid X,\theta)p(\theta)$; taking the negative log of both sides (using $\log(ab)=\log a+\log b$) gives $-\log p(y\mid X,\theta)-\log p(\theta)$ — matching the optimization view's objective term for term, with $\lambda R(\theta)$ playing the exact role of $-\log p(\theta)$.
 
 This equivalence is not a loose metaphor for intuition — it is an exact algebraic identity whenever $\lambda R(\theta)=-\log p(\theta)$, and the estimator that results, $\hat\theta=\arg\max_\theta p(\theta\mid y,X)$, is called MAP (Maximum A Posteriori) estimation: the single most probable parameter setting given both the data and the prior belief. The bottom row previews next slide's payoff and the slide after: a Gaussian prior's negative log is quadratic in $\theta$, producing the L2 penalty (ridge); a Laplace prior's negative log is linear in $|\theta|$, producing the L1 penalty (lasso) — the next inserted slide proves both of these explicitly with the actual algebra. Transition: let's see the L2 case worked out in full, starting with ridge regression.
+-->
+
+---
+glowSeed: 2641
+zoom: 0.82
+---
+
+# Gaussian vs. Laplace: What Counts as an Outlier?
+
+<div class="grid grid-cols-2 gap-6 mt-2">
+
+<div border="2 solid white/10" bg="white/5" rounded-lg p-3>
+<div class="font-bold text-center mb-1">Prior density p(θ)</div>
+<svg viewBox="0 0 460 245" class="w-full h-44" role="img" aria-label="Gaussian and Laplace prior density curves centered at zero">
+  <line x1="42" y1="207" x2="430" y2="207" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="230" y1="20" x2="230" y2="214" stroke="#475569" stroke-width="1" stroke-dasharray="4 4"/>
+  <path d="M48 205 C95 203 128 190 158 151 C184 115 205 72 230 69 C255 72 276 115 302 151 C332 190 365 203 412 205" fill="none" stroke="#60a5fa" stroke-width="4"/>
+  <path d="M48 196 L96 187 L142 167 L181 132 L211 86 L230 28 L249 86 L279 132 L318 167 L364 187 L412 196" fill="none" stroke="#c084fc" stroke-width="4"/>
+  <text x="290" y="105" fill="#c084fc" style="font-size:16px !important;font-weight:600">Laplace</text>
+  <text x="330" y="158" fill="#60a5fa" style="font-size:16px !important;font-weight:600">Gaussian</text>
+  <text x="221" y="231" fill="#cbd5e1" style="font-size:15px !important">0</text>
+  <text x="399" y="231" fill="#cbd5e1" style="font-size:15px !important">θ</text>
+</svg>
+<div class="text-center text-sm opacity-80 -mt-1">Both say weights near zero are most plausible.</div>
+</div>
+
+<div border="2 solid white/10" bg="white/5" rounded-lg p-3>
+<div class="font-bold text-center mb-1">Penalty −log p(θ)</div>
+<svg viewBox="0 0 460 245" class="w-full h-44" role="img" aria-label="Quadratic Gaussian penalty and linear Laplace penalty increasing away from zero">
+  <line x1="42" y1="207" x2="430" y2="207" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="230" y1="20" x2="230" y2="214" stroke="#475569" stroke-width="1" stroke-dasharray="4 4"/>
+  <path d="M65 31 Q230 383 395 31" fill="none" stroke="#60a5fa" stroke-width="4"/>
+  <path d="M65 65 L230 207 L395 65" fill="none" stroke="#c084fc" stroke-width="4"/>
+  <circle cx="380" cy="55" r="6" fill="#fb923c"/>
+  <path d="M375 49 L342 28" fill="none" stroke="#fb923c" stroke-width="2"/>
+  <text x="253" y="42" fill="#fb923c" style="font-size:15px !important;font-weight:600">outlier → large penalty</text>
+  <text x="73" y="45" fill="#60a5fa" style="font-size:15px !important;font-weight:600">Gaussian · L2</text>
+  <text x="79" y="91" fill="#c084fc" style="font-size:15px !important;font-weight:600">Laplace · L1</text>
+  <text x="221" y="231" fill="#cbd5e1" style="font-size:15px !important">0</text>
+  <text x="399" y="231" fill="#cbd5e1" style="font-size:15px !important">θ</text>
+</svg>
+<div class="text-center text-sm opacity-80 -mt-1">Farther from zero means less plausible—and more costly.</div>
+</div>
+
+</div>
+
+<div v-click class="grid grid-cols-2 gap-5 mt-3 text-center text-sm">
+
+<div border="2 solid blue-800" bg="blue-800/20" rounded-lg p-2>
+
+Gaussian: $-\log p(\theta) \propto \theta^2$ → <strong>L2 grows quadratically</strong>
+
+</div>
+
+<div border="2 solid violet-800" bg="violet-800/20" rounded-lg p-2>
+
+Laplace: $-\log p(\theta) \propto |\theta|$ → <strong>L1 grows linearly</strong>
+
+</div>
+
+</div>
+
+<div v-click class="mt-3 text-center text-base" border="2 solid orange-800" bg="orange-800/20" rounded-lg px-5 py-2>
+A coefficient far from zero is an <strong>outlier under the prior</strong>. The farther it moves, the larger its penalty becomes.
+</div>
+
+<!--
+Start with the left plot, modeled after the provided reference image. Both priors are centered at zero, so both encode the belief that small coefficients are more plausible than large coefficients. The Laplace prior has a sharper peak at zero and heavier tails; the Gaussian is smoother around zero and its tails fall away more quickly.
+
+The right plot is the crucial transformation: regularization uses the negative log of the prior density as a penalty. As a coefficient moves farther from zero, its prior density gets smaller, so its negative log gets larger. In that precise sense, a large-magnitude coefficient is an outlier under the prior and costs the optimization objective more.
+
+The shapes differ. For a Gaussian prior, the negative log is proportional to $\theta^2$, so the cost accelerates quadratically as the coefficient grows; this is the L2 penalty. For a Laplace prior, the negative log is proportional to $|\theta|$, so the cost grows at a constant linear rate; this is the L1 penalty. The next slide derives both relationships algebraically.
+
+Visual reference supplied by the user: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwAsxky0v_nESUhBmitkmxb3iNMt3KrwbwN--tFiK2g3QhCSYGxzCT3q4&s=10
 -->
 
 ---
@@ -179,7 +255,9 @@ Summing over $j$: $-\log p(\theta)=\tfrac1b\|\theta\|_1+\text{const}$
 </div>
 
 <div v-click class="mt-6 text-center text-lg" border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4>
+
 Small prior variance $\tau^2$ (or scale $b$) ⇔ large $\lambda$ — a tighter prior belief in small weights is a stronger penalty.
+
 </div>
 
 <!--
@@ -211,8 +289,6 @@ $$\hat\theta_{ridge}=\arg\min_\theta\sum_i(y_i-x_i^\top\theta)^2+\lambda\|\theta
 
 - Smoothly shrinks every weight toward zero
 - Usually does not make weights exactly zero
-- Gaussian prior under MAP
-- “Weight decay” is the same idea in neural networks
 
 </v-clicks>
 </div>
@@ -261,7 +337,6 @@ $$\hat\theta_{lasso}=\arg\min_\theta\sum_i(y_i-x_i^\top\theta)^2+\lambda\|\theta
 
 - Encourages **sparse** parameter vectors
 - Many coefficients become exactly zero
-- Laplace prior under MAP
 - Can perform rough feature selection
 
 </v-clicks>
@@ -298,6 +373,7 @@ Critical caveat, worth emphasizing since it is commonly misunderstood: a coeffic
 
 ---
 glowSeed: 267
+disabled: true
 ---
 
 # Why L1 Creates Zeros and L2 Usually Does Not

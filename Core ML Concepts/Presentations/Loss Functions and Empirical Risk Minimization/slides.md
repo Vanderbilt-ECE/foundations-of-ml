@@ -35,9 +35,13 @@ $\displaystyle \arg\min_\theta\;\frac1n\sum_{i=1}^{n}\ell\big(f_\theta(x_i),y_i\
 <div class="mt-6 text-sm opacity-70">Zooming in on the symbol that tells a model what “better” means</div>
 
 <!--
-This lecture closes Core ML Concepts by giving precise, symbol-by-symbol meaning to three words used loosely so far: loss, risk, and objective. Every model-fitting procedure you will ever use — linear regression, logistic regression, decision trees, neural networks — reduces to choosing $\theta$ (the model's parameters) to make some quantity small. The headline equation names that quantity: $\arg\min_\theta$ means "find the $\theta$ that minimizes what follows"; $\frac1n\sum_{i=1}^n$ is an average over the $n$ training examples; $\ell(f_\theta(x_i),y_i)$, the loss function, scores how bad a single prediction $f_\theta(x_i)$ is compared to the true label $y_i$.
+The goal of this lecture is to give formal definitions to loss, risk, and objective in the context of machine learning.
 
-The core message to land immediately: the loss function is not a bookkeeping step computed after training finishes to report a number. It is the very definition of "better" that the entire fitting procedure — gradient descent, closed-form solving, whatever the algorithm — is built to pursue. Change the loss, and you change what "the best model" even means, even holding the model class and data fixed. Roadmap: we will formalize true risk versus empirical risk, examine the generalization gap this creates, survey concrete loss functions for regression and classification, derive where log loss comes from, and end by seeing how loss, ERM, and regularization combine into the single objective used in practice — tying together every earlier lecture in this module.
+Every model-fitting procedure you will ever use — linear regression, logistic regression, decision trees, neural networks — reduces to choosing $\theta$ (the model's parameters) to make some quantity small.
+
+The loss function is not a bookkeeping step computed after training finishes to report a number. It is the very definition of "better" that the entire fitting procedure — gradient descent, closed-form solving, whatever the algorithm — is built to pursue. Change the loss, and you change what "the best model" even means, even holding the model class and data fixed. 
+
+Roadmap: we will formalize true risk versus empirical risk, examine the generalization gap this creates, survey concrete loss functions for regression and classification, derive where log loss comes from, and end by seeing how loss, ERM, and regularization combine into the single objective used in practice — tying together every earlier lecture in this module.
 -->
 
 ---
@@ -63,15 +67,22 @@ $$\hat R(\theta)=\frac1n\sum_{i=1}^{n}\ell(f_\theta(x_i),y_i)$$
 </div>
 </div>
 
-<div v-click class="mt-7" border="2 solid white/10" bg="white/5" rounded-lg p-5 text-center text-xl>
-$$\hat\theta_{ERM}=\arg\min_\theta\hat R(\theta)$$
+<div v-click mt-7 border="2 solid white/10" bg="white/5" rounded-lg p-5 text-center text-xl>
+
+$$
+\hat{\theta}_{\mathrm{ERM}} = \arg\min_{\theta} \hat{R}(\theta)
+$$
+
 <div class="text-sm opacity-75">Empirical Risk Minimization = “fit the model to the training data”</div>
 </div>
 
 <!--
-Define both boxes precisely, since the distinction between them is the single most important idea in this deck. True risk $R(\theta)=\mathbb E_{(x,y)\sim\mathcal D}[\ell(f_\theta(x),y)]$ is the expected loss over $\mathcal D$, the true, unknown population distribution that generates every possible $(x,y)$ pair the model could ever encounter — past, present, and future. This is the quantity we actually care about: how will this model perform on data it has not seen. But $\mathcal D$ is never fully known or fully enumerable, so $R(\theta)$ cannot be computed exactly; it can only be estimated.
+ True risk $R(\theta)=\mathbb E_{(x,y)\sim\mathcal D}[\ell(f_\theta(x),y)]$ is the expected loss over $\mathcal D$, the true, unknown population distribution that generates every possible $(x,y)$ pair the model could ever encounter.
+This is the quantity we actually care about: how will this model perform on data it has not seen. But $\mathcal D$ is never fully known or fully enumerable, so $R(\theta)$ cannot be computed exactly; it can only be estimated.
 
-Empirical risk $\hat R(\theta)=\frac1n\sum_{i=1}^n\ell(f_\theta(x_i),y_i)$ replaces the true, unknown expectation with an average over the $n$ examples we actually have — the training sample. The hat over $R$ (matching the hat over $f$ from the Bias-Variance deck) again signals "computed from data, standing in for something we cannot observe directly." Empirical Risk Minimization (ERM), boxed at the bottom, is the strategy of choosing $\hat\theta$ to minimize $\hat R(\theta)$ instead of the true $R(\theta)$, simply because $\hat R$ is the only one we can actually compute.
+Empirical risk $\hat R(\theta)=\frac1n\sum_{i=1}^n\ell(f_\theta(x_i),y_i)$ replaces the true, unknown expectation with an average over the $n$ examples we actually have — the training sample.  
+
+Empirical Risk Minimization (ERM), boxed at the bottom, is the strategy of choosing $\hat\theta$ to minimize $\hat R(\theta)$ instead of the true $R(\theta)$, simply because $\hat R$ is the only one we can actually compute.
 
 The essential caveat, which the next slide builds on: minimizing $\hat R(\theta)$ does not automatically minimize $R(\theta)$. A model can drive empirical risk arbitrarily low — even to zero, by memorizing the training set — while true risk stays high. This is precisely the overfitting phenomenon from the Bias-Variance deck, now given a formal name: the empirical risk *underestimates* the true risk once the same data used to fit $\theta$ is also used to evaluate it, because the model has been explicitly optimized to look good on exactly those points.
 -->
@@ -109,9 +120,11 @@ glowSeed: 283
 <div v-click class="mt-4 text-center text-xl">Overfitting means R̂(θ) falls while the gap R(θ) − R̂(θ) grows.</div>
 
 <!--
-The picture makes the previous slide's abstraction concrete. The large blue ellipse is the full population $\mathcal D$ — every $(x,y)$ pair that could ever occur, most of which we will never see. The small teal circle inside it is the training sample: a finite, randomly drawn subset of that population. $\hat R(\theta)$, computed only over the teal points, can be pushed low by a flexible enough model, simply because there are only finitely many teal points to satisfy. $R(\theta)$, the average over the entire blue ellipse, is unaffected by how well the model does on those specific teal points — it depends on how well the model does everywhere.
+ $\hat R(\theta)$, computed only over the teal points, can be pushed low by a flexible enough model, simply because there are only finitely many teal points to satisfy. $R(\theta)$, the average over the entire blue ellipse, is unaffected by how well the model does on those specific teal points — it depends on how well the model does everywhere.
 
-Define "generalization gap" precisely: it is $R(\theta)-\hat R(\theta)$, the difference between true risk and empirical risk. A model that is well-behaved has a small gap — its training performance is a trustworthy preview of its future performance. The boxed statement at the bottom gives the formal definition of overfitting used from here on: overfitting is not simply "high training accuracy" — it specifically means $\hat R(\theta)$ keeps falling while the gap $R(\theta)-\hat R(\theta)$ grows, i.e., the model is improving on the sample at the expense of the population.
+Define "generalization gap" precisely: it is $R(\theta)-\hat R(\theta)$, the difference between true risk and empirical risk. 
+
+A model that is well-behaved has a small gap — its training performance is a trustworthy preview of its future performance. Overfitting specifically means $\hat R(\theta)$ keeps falling while the gap $R(\theta)-\hat R(\theta)$ grows, i.e., the model is improving on the sample at the expense of the population.
 
 This directly formalizes the diagnostic from the end of the Bias-Variance deck: what we called "comparing training error to validation error" is an *estimate* of the generalization gap, since we still cannot compute $R(\theta)$ exactly, but a large held-out validation set approximates $\mathcal D$ well enough to be a trustworthy stand-in. ERM by itself has no built-in defense against exploiting quirks of a finite sample — nothing in the ERM objective penalizes a model for behaving differently on unseen data, which is exactly why regularization (a later Core ML Concepts deck) and validation-based model selection exist: validation *measures* the gap, and regularization actively *constrains* it during fitting.
 -->
@@ -134,13 +147,16 @@ The easiest loss to optimize is not always the metric stakeholders care about—
 </div>
 
 <!--
-Walk through why each of these four properties matters, since loss design is a judgment call, not a lookup table. Aligned: the loss must actually reflect what a wrong answer costs in the real application — predicting a house price $1,000 too low and predicting it $1,000 too high might not be equally bad in a lending context; a loss that is symmetric when the real costs are asymmetric is misaligned regardless of its mathematical elegance.
+Aligned: the loss must actually reflect what a wrong answer costs in the real application — predicting a house price $1,000 too low and predicting it $1,000 too high might not be equally bad in a lending context; a loss that is symmetric when the real costs are asymmetric is misaligned regardless of its mathematical elegance.
 
-Optimizable: most training algorithms (gradient descent and its variants, which you will see across every model in this course) need a gradient or subgradient — a direction that tells the algorithm "make the parameters change this way to reduce loss." A loss that is flat almost everywhere provides no such direction; the next two slides use exactly this property to explain why we do not train classifiers directly on accuracy.
+Optimizable: most training algorithms need a gradient or subgradient — a direction that tells the algorithm "make the parameters change this way to reduce loss." A loss that is flat almost everywhere provides no such direction.
 
-Well-shaped: convexity means a loss function has a single global minimum with no separate local minima to get trapped in — for a convex loss, following the gradient downhill is guaranteed to eventually reach the best possible fit (subject to the model class). Non-convex losses (common in deep learning) do not offer this guarantee, which is one reason neural network training involves more art — initialization, learning rate schedules — than the closed-form or convex-optimization methods used for, say, linear regression with squared error.
+Well-shaped: convexity means a loss function has a single global minimum with no separate local minima to get trapped in — for a convex loss, following the gradient downhill is guaranteed to eventually reach the best possible fit (subject to the model class). Non-convex losses (common in deep learning) do not offer this guarantee.
 
-Task-aware: the same prediction task can call for different losses depending on context — outlier-heavy data favors losses that don't let a few extreme points dominate (previewed two slides from now), imbalanced classes may need per-class weighting, and asymmetric error costs (a false negative in cancer screening is not equivalent to a false positive) may require a custom loss entirely. The amber callout box states the central tension of this whole slide: the loss that is easiest for an optimizer to work with is not automatically the metric a stakeholder actually cares about (e.g., accuracy, revenue, patient outcomes) — so we deliberately choose an optimizable stand-in, a *surrogate*, that correlates well with the metric we truly want, a theme the classification slides two ahead make precise.
+Task-aware: the same prediction task can call for different losses depending on context — 
+- outlier-heavy data favors losses that don't let a few extreme points dominate  
+- imbalanced classes may need per-class weighting 
+- asymmetric error costs (a false negative in cancer screening is not equivalent to a false positive) may require a custom loss entirely. T
 -->
 
 ---
@@ -153,7 +169,7 @@ glowSeed: 285
 <div>
 <svg viewBox="0 0 440 310" class="w-full">
   <line x1="40" y1="260" x2="415" y2="260" stroke="#64748b" stroke-width="2"/><line x1="220" y1="285" x2="220" y2="20" stroke="#64748b" stroke-width="2"/>
-  <path d="M65 35 Q220 260 375 35" fill="none" stroke="#60a5fa" stroke-width="4"/>
+  <path d="M65 35 Q220 485 375 35" fill="none" stroke="#60a5fa" stroke-width="4"/>
   <path d="M65 45 L220 260 L375 45" fill="none" stroke="#f59e0b" stroke-width="4"/>
   <text x="310" y="80" fill="#60a5fa" style="font-size: 14px">squared e²</text><text x="315" y="140" fill="#fbbf24" style="font-size: 14px">absolute |e|</text><text x="180" y="305" fill="#94a3b8" style="font-size: 14px">prediction error</text>
 </svg>
@@ -162,24 +178,32 @@ glowSeed: 285
 <div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4 mb-4>
 <strong>Squared error · L2 loss</strong>
 <div class="text-sm opacity-80 mt-2">smooth; large misses dominate; Gaussian noise model</div>
-$$\ell(y,\hat y)=(y-\hat y)^2$$
+
+$$
+\ell(y,\hat{y}) = (y-\hat{y})^2
+$$
+
 </div>
 <div v-click border="2 solid orange-800" bg="orange-800/20" rounded-lg p-4>
 <strong>Absolute error · L1 loss</strong>
 <div class="text-sm opacity-80 mt-2">robust to outliers; corner at zero; Laplace noise model</div>
-$$\ell(y,\hat y)=|y-\hat y|$$
+
+$$
+\ell(y,\hat{y}) = \lvert y-\hat{y} \rvert
+$$
+
 </div>
 </div>
 </div>
 
 <!--
-Define the residual first: $e=y-\hat y$, the signed difference between the true label $y$ and the model's prediction $\hat y$. Both loss functions on this slide are functions of this one number, plotted on the x-axis of the chart (labeled "prediction error").
+Define the residual first: $e=y-\hat y$, 
 
-Squared error, $\ell(y,\hat y)=(y-\hat y)^2$: because the error is squared, a residual of size 2 contributes four times as much loss as a residual of size 1, and a residual of size 10 contributes one hundred times as much. This means large errors are penalized disproportionately — the loss function actively prioritizes not being very wrong on any single point, even if that means being slightly more wrong on many other points. This quadratic shape corresponds to assuming the noise in the data follows a Gaussian (normal) distribution — a fact we will derive by the same likelihood argument used for log loss later in this deck, applied instead to a Gaussian model of $y$.
+Squared error, $\ell(y,\hat y)=(y-\hat y)^2$: because the error is squared, this means large errors are penalized disproportionately.
 
-Absolute error, $\ell(y,\hat y)=|y-\hat y|$: the loss grows linearly with the size of the residual, so a residual of size 10 contributes only ten times as much loss as a residual of size 1 — proportionally, not quadratically. This makes L1 loss far less sensitive to a small number of extreme outliers, since one huge residual cannot dominate the objective the way it can under squared error. The next slide makes this difference numeric. Note the visual "corner" at zero on the chart — |e| is not differentiable exactly at $e=0$, a minor complication for optimization that squared error does not have, since $e^2$ is smooth everywhere.
+Absolute error, $\ell(y,\hat y)=|y-\hat y|$: the loss grows linearly with the size of the residual, this makes L1 loss far less sensitive to a small number of extreme outliers, since one huge residual cannot dominate the objective the way it can under squared error.  Note the visual "corner" at zero on the chart — |e| is not differentiable exactly at $e=0$, a minor complication for optimization that squared error does not have, since $e^2$ is smooth everywhere.
 
-Common misconception: neither loss is "the correct one" in some absolute sense — the choice is a modeling decision about what kind of noise you believe is present and how much you want to penalize large mistakes. Transition: let's see the practical consequence of this choice on a dataset with one outlier.
+Common misconception: neither loss is "the correct one" in some absolute sense — the choice is a modeling decision about what kind of noise you believe is present and how much you want to penalize large mistakes.
 -->
 
 ---
@@ -254,11 +278,9 @@ Train with a smooth <strong>surrogate loss</strong>; report accuracy when it sui
 </div>
 
 <!--
-Define $\ell_{0\text{-}1}$ precisely: $\mathbb 1[\hat y\neq y]$ is the indicator function, which equals 1 when the predicted label $\hat y$ disagrees with the true label $y$, and 0 when they agree. Averaged over a dataset, this is exactly $1-\text{accuracy}$ — so directly minimizing 0-1 loss is the same as directly maximizing accuracy. It sounds like the obviously "right" thing to optimize, since accuracy is usually the metric people actually report.
+Define $\ell_{0\text{-}1}$ precisely: $\mathbb 1[\hat y\neq y]$ is the indicator function, which equals 1 when the predicted label $\hat y$ disagrees with the true label $y$, and 0 when they agree. 
 
-The problem is entirely about optimization mechanics, not about what the loss measures. The chart shows 0-1 loss as a function of the "decision margin" — informally, how far a point sits from the decision boundary, with sign indicating which side. The loss is a flat step function: exactly 0 on the correct side, exactly 1 on the wrong side, with an abrupt jump exactly at the boundary. A flat function has zero slope (zero gradient) almost everywhere, and an undefined slope exactly at the jump.
-
-Walk through why this breaks gradient-based training, which is how virtually every model in this course is fit: gradient descent updates parameters by moving a small step in the direction that most decreases the loss, which requires a gradient — a nonzero derivative telling you which direction is "downhill." If the loss is flat, the gradient is zero everywhere it is defined, so gradient descent receives no information about which direction to move the parameters, even when the model is *close* to correctly classifying a point but just barely wrong (or barely right). A classifier can become dramatically more or less confident about a prediction — moving its internal score far from the boundary — without ever flipping the hard predicted label, and 0-1 loss would report exactly the same value throughout, providing literally no training signal for that improvement or degradation.
+The problem is entirely about optimization mechanics, not about what the loss measures. This function has zero slope almost everywhere. Because the gradient is always zero or undefined, it gives no signal on how to reduce the lossl
 
 Common misconception: this is not a claim that accuracy is a bad thing to *care about* — it remains the right thing to *report* to stakeholders in many tasks. It is specifically a poor training objective, because gradient-based optimizers cannot use it to find good parameters. Transition: the standard fix is to keep the same spirit — score correctness — with a smooth stand-in.
 -->
@@ -272,25 +294,35 @@ glowSeed: 288
 <div class="grid grid-cols-2 gap-8 mt-3 items-center">
 <div>
 <svg viewBox="0 0 450 320" class="w-full">
-  <line x1="40" y1="270" x2="420" y2="270" stroke="#64748b" stroke-width="2"/><line x1="225" y1="290" x2="225" y2="25" stroke="#64748b" stroke-width="2"/>
-  <path d="M55 45 L220 45 L230 265 L410 265" fill="none" stroke="#f87171" stroke-width="3"/>
-  <path d="M55 35 C120 45,165 90,205 165 C250 235,325 258,410 264" fill="none" stroke="#2dd4bf" stroke-width="5"/>
-  <path d="M55 35 L225 235 L410 265" fill="none" stroke="#60a5fa" stroke-width="4"/>
-  <text x="70" y="25" fill="#fca5a5" style="font-size: 13px">0–1</text><text x="95" y="88" fill="#5eead4" style="font-size: 13px">logistic</text><text x="80" y="145" fill="#93c5fd" style="font-size: 13px">hinge</text>
-  <text x="155" y="310" fill="#94a3b8" style="font-size: 14px">signed margin y f(x)</text>
+  <line x1="45" y1="270" x2="420" y2="270" stroke="#64748b" stroke-width="2"/>
+  <line x1="230" y1="290" x2="230" y2="18" stroke="#64748b" stroke-width="2"/>
+  <g stroke="#64748b" stroke-width="1.5">
+    <line x1="62" y1="266" x2="62" y2="274"/><line x1="146" y1="266" x2="146" y2="274"/>
+    <line x1="272" y1="266" x2="272" y2="274"/><line x1="314" y1="266" x2="314" y2="274"/>
+    <line x1="398" y1="266" x2="398" y2="274"/><line x1="226" y1="227" x2="234" y2="227"/>
+  </g>
+  <path d="M62 227 L230 227 L230 270 L398 270" fill="none" stroke="#f87171" stroke-width="3"/>
+  <polyline points="62,20.7 72.5,35.9 83,51 93.5,66 104,80.9 114.5,95.6 125,110 135.5,124.2 146,138.1 156.5,151.5 167,164.5 177.5,176.8 188,188.5 198.5,199.5 209,209.6 219.5,218.8 230,227 240.5,234.3 251,240.6 261.5,246 272,250.6 282.5,254.4 293,257.5 303.5,260.1 314,262.1 324.5,263.8 335,265.1 345.5,266.2 356,267 366.5,267.6 377,268.2 387.5,268.6 398,268.9" fill="none" stroke="#2dd4bf" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M62 55 L272 270 L398 270" fill="none" stroke="#60a5fa" stroke-width="4" stroke-linejoin="round"/>
+  <text x="78" y="216" fill="#fca5a5" style="font-size: 13px">0–1</text>
+  <text x="82" y="38" fill="#5eead4" style="font-size: 13px">scaled logistic</text>
+  <text x="92" y="92" fill="#93c5fd" style="font-size: 13px">hinge</text>
+  <g fill="#94a3b8" style="font-size: 11px"><text x="54" y="288">−4</text><text x="225" y="288">0</text><text x="269" y="288">1</text><text x="394" y="288">4</text><text x="214" y="231">1</text></g>
+  <text x="154" y="310" fill="#94a3b8" style="font-size: 14px">signed margin y × f(x)</text>
+  <text x="20" y="155" fill="#94a3b8" style="font-size: 13px" transform="rotate(-90 20 155)">loss</text>
 </svg>
 </div>
 <div>
-<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4 mb-4><strong>Log loss</strong><div class="text-sm opacity-80 mt-2">smooth; rewards calibrated probabilities; logistic regression and neural classifiers</div></div>
+<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4 mb-4><strong>Logistic loss</strong><div class="text-sm opacity-80 mt-2">smooth; rewards calibrated probabilities</div><div class="text-xs opacity-65 mt-1">curve scaled by 1/ln 2 to upper-bound 0–1 loss</div></div>
 <div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4><strong>Hinge loss</strong><div class="text-sm opacity-80 mt-2">penalizes points inside the margin; support vector machines</div></div>
-<div v-click class="mt-5 text-sm opacity-80">Both upper-bound or smooth the abrupt 0–1 objective.</div>
+<div v-click class="mt-5 text-sm opacity-80">Both provide useful upper bounds on the abrupt 0–1 objective.</div>
 </div>
 </div>
 
 <!--
 Define "signed margin," the x-axis of this chart: $yf(x)$, the true label (encoded as $\pm1$) multiplied by the model's raw, pre-threshold score $f(x)$. When the model's score has the same sign as the true label, $yf(x)>0$ and the prediction is correct; the larger $yf(x)$ is, the more confidently correct. When signs disagree, $yf(x)<0$ and the prediction is wrong, with more negative values meaning more confidently wrong. This single number generalizes "decision margin" from the previous slide into something continuous and signed.
 
-Overlaid on the same axes: the red step function is 0-1 loss, flat and unhelpful as just discussed. The teal curve, logistic (log) loss, is smooth everywhere — it decreases continuously as the margin increases, providing gradient signal at every point, not just near the boundary. The blue curve, hinge loss, is a straight line with a kink: it decreases linearly until the margin reaches 1 (not just 0 — the model must be *confidently* correct, not merely correct), then flattens to exactly zero. Both curves sit *above* the 0-1 loss everywhere (a required property called an "upper bound" or "surrogate" relationship) — meaning if you drive the surrogate loss to zero, you have also driven the true 0-1 loss to zero, so minimizing the surrogate is a mathematically justified way to approximately minimize what you actually care about.
+Overlaid on the same axes: the red step function is 0-1 loss, flat and unhelpful as just discussed. The teal curve is the normalized logistic loss $\log(1+e^{-yf(x)})/\ln 2$. Dividing by $\ln 2$ scales its value at the decision boundary to 1, making the plotted curve an upper bound on 0-1 loss; this positive scaling does not change which model minimizes it. The standard natural-log version used on later slides has the same shape and optimizer, but different numerical units. The blue curve, hinge loss $\max(0,1-yf(x))$, decreases linearly until the margin reaches 1 (not just 0 — the model must be *confidently* correct, not merely correct), then flattens to exactly zero. Both plotted surrogates sit above the 0-1 loss everywhere, so minimizing them is a mathematically justified way to approximately minimize what we actually care about.
 
 The two cards distinguish what each surrogate additionally rewards beyond bare correctness. Log loss, used in logistic regression and as the standard classification loss in neural networks, keeps decreasing as the predicted probability moves toward 1 for the correct class — it explicitly rewards *calibrated* probability estimates, not just correct hard labels, which the next slide quantifies. Hinge loss, the objective behind support vector machines, cares only about achieving a sufficient margin of confidence (margin $\geq 1$) and gives zero additional credit for probability beyond that — it optimizes for a robust separating boundary rather than well-calibrated probabilities. Transition: let's look closely at the log-loss numbers, and then derive where that formula actually comes from.
 -->
@@ -335,6 +367,46 @@ Cross-entropy loss <strong>is</strong> negative log-likelihood, averaged — ERM
 </div>
 
 <!--
+Define:
+  - $n$ is the number of training examples.
+  - $y_i\in{0,1}$ is the observed label.
+  - $\hat p_i=f_\theta(x_i)$ is the model’s predicted probability that (y_i=1).
+  - $\mathcal L(\theta)$ measures how much probability the model assigns to all the labels that actually occurred.
+
+
+  The exponents act like a switch:
+
+  If $y_i=1$,
+
+  $$
+  \hat p_i^{1}(1-\hat p_i)^0=\hat p_i
+  $$
+
+  If $y_i=0$,
+
+  $$
+  \hat p_i^{0}(1-\hat p_i)^1=1-\hat p_i
+  $$
+
+**if $\hat p_i$ matches $y_i$, then the term $P(y\mid\hat p)=\hat p^y(1-\hat p)^{1-y}=1$**
+
+  So each factor selects the probability the model assigned to the correct observed label. The product combines those probabilities across all examples, assuming the examples are independent.
+
+  For instance, if the observed labels are (1,0,1) and the model predicts (0.9,0.2,0.7), then:
+
+  $$
+  \mathcal L(\theta)
+  =0.9(1-0.2)(0.7)
+  =0.504
+  $$
+
+  A larger likelihood means the model considered the observed dataset more probable. This is not yet a loss: training converts it into one by minimizing the negative log-likelihood shown on the next line.
+
+**Maximizing how much they match is the same as minimizing the negative log because log is monotonic.**
+
+  - Negative log-likelihood (NLL): “How improbable did the model consider the labels that actually occurred?”
+  - Cross-entropy: “How different is the model’s predicted probability distribution from the target distribution?”
+
 This slide answers the question the previous slide's speaker note only asserted: log loss is not an arbitrary smooth curve someone invented to replace 0-1 loss — it is derived from a specific probabilistic assumption about how labels are generated.
 
 Step through the derivation left to right. We assume each label $y_i$ is generated by a Bernoulli (biased coin flip) random variable whose success probability is exactly the model's predicted probability $\hat p_i=f_\theta(x_i)$. The Bernoulli probability mass function $P(y\mid\hat p)=\hat p^y(1-\hat p)^{1-y}$ is a compact way to write two cases in one expression: plug in $y=1$ and the $(1-\hat p)^{1-y}$ factor becomes $(1-\hat p)^0=1$, leaving just $\hat p$; plug in $y=0$ and the $\hat p^y$ factor becomes $\hat p^0=1$, leaving just $1-\hat p$. So this one formula literally says "probability $\hat p$ if the label is 1, probability $1-\hat p$ if the label is 0" — exactly what you want a coin-flip model to say.

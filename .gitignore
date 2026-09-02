@@ -4,3 +4,12 @@ dist/
 .playwright/
 .playwright-cli/
 test-results/
+
+# Video files
+*.mp4
+
+# Scratch / working dirs
+tmp/
+.tmp-*/
+.venv/
+pnpm-lock.yaml

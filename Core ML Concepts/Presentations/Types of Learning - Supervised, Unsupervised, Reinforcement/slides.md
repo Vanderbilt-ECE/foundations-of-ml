@@ -82,11 +82,35 @@ $$\theta^\star = \arg\min_\theta\; \mathbb{E}_{(x,y)\sim\mathcal D}\!\left[\ell(
 </div>
 
 <!--
-This is Tom Mitchell's classic formal definition of learning, worth stating precisely: "a computer program is said to learn from experience E with respect to some task T and performance measure P, if its performance on T, as measured by P, improves with experience E." The three cards break this into its components: Experience (E) is whatever the algorithm is exposed to — labeled examples for supervised learning, raw observations for unsupervised learning, or interactions with an environment for reinforcement learning; Task (T) is what the algorithm is trying to accomplish — predict a value, discover structure, or decide on an action; Performance (P) is the measurable quantity that tells us whether the algorithm is getting better — a loss function, a clustering-quality score, or accumulated reward.
+This is Tom Mitchell's classic formal definition of learning, worth stating precisely: "a computer program is said to learn from experience E with respect to some task T and performance measure P, if its performance on T, as measured by P, improves with experience E."
 
-Translate this abstract definition into the concrete machinery used throughout the rest of the course, shown in the boxed formula: data supplies the experience $\mathcal D$ (the pairs $(x,y)$ this deck will formalize for the supervised case), a parameterized model $f_\theta$ represents the hypothesis being learned, a loss function $\ell$ operationalizes the performance measure, and an optimization procedure (gradient descent or a closed-form solver) searches for the parameters $\theta^\star$ that minimize expected loss — this is exactly the empirical risk minimization framework from the Loss Functions deck, previewed here before it is built up in full.
+Experience (E) is whatever the algorithm is exposed to
+- labeled examples for supervised learning,
+- raw observations for unsupervised learning, 
+- or interactions with an environment for reinforcement learning; 
 
-The key point to land explicitly: the three paradigms introduced next are not three unrelated algorithm families, they are three different answers to "where does the performance signal (P) come from, and how is the experience (E) structured?" Supervised learning gets P directly, as a per-example labeled target. Unsupervised learning has no direct target at all — P must be defined implicitly, in terms of the discovered structure's usefulness. Reinforcement learning gets P as a delayed, cumulative reward rather than a per-decision label. Transition: start with supervised learning, since it is both the most common paradigm in practice and the clearest illustration of the E–T–P framework.
+Task (T) is what the algorithm is trying to accomplish
+- predict a value,
+- discover structure, 
+- or decide on an action; 
+
+Performance (P) is the measurable quantity that tells us whether the algorithm is getting better
+- a loss function, 
+- a clustering-quality score, 
+- or accumulated reward.
+
+The Goal - Find $\theta^*$ parameters that minimize the expected "loss" of a model, $f_\theta$, with respect to $x$ and $y$, where $x$ and $y$ are data points from $\mathcal D$. 
+
+In this case, $\mathcal D$ is our experience. 
+
+$f_\theta$ is our hypothesis being learned. 
+
+A loss function $\ell$ operationalizes the performance measure (P)
+
+Gradient decent is used to search for the parameters $\theta^\star$ that minimize the expected loss.
+
+Different types of machine learning differ in "where does the performance signal (P) come from, and how is the experience (E) structured?" 
+
 -->
 
 ---
@@ -134,11 +158,16 @@ $$\mathcal D = \{(x_i,y_i)\}_{i=1}^{n}, \qquad f_\theta:\mathcal X\to\mathcal Y$
 </div>
 
 <!--
-The formal setup, $\mathcal D=\{(x_i,y_i)\}_{i=1}^n$ with $f_\theta:\mathcal X\to\mathcal Y$, says precisely what "supervised" means: the training set is a collection of $n$ input-output pairs, and the goal is to learn a function mapping the input space $\mathcal X$ to the output space $\mathcal Y$. The defining feature, worth stating as plainly as possible, is that during training the correct answer $y_i$ is available for every $x_i$ — so the loss function can directly compare the model's prediction $f_\theta(x_i)$ against the known-correct $y_i$ and produce an unambiguous error signal. This is what makes supervised learning's objective so clean compared to the other two paradigms: there is never any doubt about what "correct" means for a training example.
+The formal setup, $\mathcal D=\{(x_i,y_i)\}_{i=1}^n$ with $f_\theta:\mathcal X\to\mathcal Y$, says precisely what "supervised" means: 
 
-The regression/classification split is about the type of $\mathcal Y$: regression targets are continuous (a price, a temperature, a measurement — any real number or vector of real numbers), while classification targets are discrete (spam/not-spam, one of several disease categories — a label drawn from a finite set). This distinction determines which loss functions and evaluation metrics apply later (squared error naturally fits continuous targets, cross-entropy/log-loss naturally fits discrete ones, both covered in the Loss Functions deck).
+The training set is a collection of $n$ input-output pairs, and the goal is to learn a function mapping the input space $\mathcal X$ to the output space $\mathcal Y$. 
 
-The scatter plot makes the regression case visual: house size (x-axis) versus price (y-axis), with the teal line representing the learned function $f_\theta$ and the orange dashed line showing how a new, unseen house size (which was never one of the labeled training points) gets mapped to a predicted price by reading off the fitted line. Emphasize the economic reality behind "label collection is often more expensive than model training": getting the labels $y_i$ — actual sale prices, confirmed diagnoses, human-annotated categories — frequently requires real-world measurement, expert judgment, or manual annotation, and can dominate a project's total cost even though fitting the model itself might take seconds. Transition: the next slide turns this formal setup into five lines of runnable code.
+The defining feature - during training the correct answer $y_i$ is available for every $x_i$ — so the loss function can directly compare the model's prediction $f_\theta(x_i)$ against the known-correct $y_i$ and produce an unambiguous error signal. 
+
+This is what makes supervised learning's objective so clean compared to the other two paradigms: there is never any doubt about what "correct" means for a training example.
+
+Difference between regression and classification is the type of data in $\mathcal Y$ - discrete categories vs continuous
+
 -->
 
 ---
@@ -165,11 +194,12 @@ print(model.predict([[2000]]))
 </div>
 
 <!--
-Walk through this line by line — it is small enough to trace completely. `X` holds four labeled examples' inputs (square footage, as a column vector — scikit-learn expects 2D input even for a single feature, hence the nested brackets), and `y` holds the corresponding known sale prices. `LinearRegression().fit(X, y)` is where learning happens: the model searches for a slope and intercept that best fit these four (input, output) pairs, exactly the parameter-fitting step from the E-T-P framework. `model.predict([[2000]])` is the payoff — asking for a price prediction on 2000 square feet, an input that never appeared in the training data at all.
 
-This tiny example contains the entire supervised workflow in five lines: labeled examples (E), a task of predicting price from size (T), and an implicit performance measure the `.fit()` call is optimizing (P, squared error by default for `LinearRegression`). The three cards below name each stage explicitly — Examples, Fit, Generalize — and "Generalize" is the one to dwell on, because it is the actual point of the whole exercise.
+E - Experience comes from the labeled experience
 
-The central question this example is designed to provoke, and worth asking students directly: is the interesting thing here that the fitted line passes reasonably close to these four specific houses? No — with only four points, almost any reasonable line will look fine. The interesting question is whether the line's prediction for the *new* input (2000 sq ft, never seen during training) is trustworthy, and that question cannot be answered by looking at training performance alone — it requires the entire measurement discipline built up in the Train-Validation-Test Splits deck. Transition: having seen supervised learning's labeled-data structure, contrast it directly with unsupervised learning, where no such label exists at all.
+T - Task is to predict the sale price given the square footage
+
+P - Performance is measured by the sum of the squared residuals
 -->
 
 ---
@@ -216,11 +246,19 @@ $$\mathcal D = \{x_i\}_{i=1}^{n} \qquad \text{no labels}$$
 </div>
 
 <!--
-Contrast this directly and explicitly with the previous slide: the dataset is now just $\mathcal D=\{x_i\}_{i=1}^n$ — no labels, no $y_i$ at all. This single change has a large consequence: since there is no known-correct answer for any input, the algorithm cannot be told "you were off by this much" the way a supervised loss function can. Instead, the goal shifts from prediction to discovery — finding structure that was implicitly present in the data all along, without any external signal saying what that structure "should" look like.
 
-The three bulleted subtypes correspond to three different notions of "structure." Clustering asks "which points naturally group together?" (illustrated by the before/after diagram: unlabeled gray points on the left resolve into two colored groups on the right after an algorithm identifies which points are close to each other). Dimensionality reduction asks "can this data be described with fewer numbers while preserving what matters?" (the subject of the PCA/t-SNE/UMAP deck later in the course). Density estimation asks "where in the input space is data likely to occur, and where is it rare?" — useful for anomaly detection, among other things.
+In unsupervised learning, the experience (E) is only given by an input - no labels. 
 
-The closing point is worth dwelling on since it is genuinely different from supervised learning's clean setup: evaluation is task-dependent because there may be no single "correct" clustering or "correct" compression — a clustering that groups customers by purchasing behavior might be excellent for a marketing use case and useless for a logistics use case, using the exact same data. This ambiguity is a real cost of giving up labels, not a minor technicality. Transition: the next slide makes clustering concrete with a runnable k-means example.
+This means that performance (P) cannot be calculated directly using labels.
+
+The goal shifts from prediction to discovery.
+
+Three different notions of "structure." 
+- Clustering asks "which points naturally group together?"  
+- Dimensional reduction asks "can this data be described with fewer numbers while preserving what matters?". 
+- Density estimation asks "where in the input space is data likely to occur, and where is it rare?" — useful for anomaly detection, among other things.
+
+How its different than supervised learning: evaluation is task-dependent because there may be no single "correct" answer.
 -->
 
 ---
@@ -229,7 +267,7 @@ glowSeed: 206
 
 # Unsupervised Learning — Discovering Groups
 
-```python {1-2|4|6|7-8|all}
+```python {1-2|4-5|6|7-8|all}
 from sklearn.cluster import KMeans
 import numpy as np
 
@@ -246,9 +284,16 @@ The algorithm invents cluster IDs; <strong>humans still decide whether the group
 </div>
 
 <!--
-Trace the code: six 2D points are given with no labels attached, `KMeans(n_clusters=2, ...)` is told only how many groups to look for (2), and `.fit(X)` runs the clustering algorithm purely on the geometric positions of the points — three points near $(1,1)$-ish coordinates and three points near $(8,9)$-ish coordinates, visibly two separated blobs. `model.labels_` then reports which of the two discovered groups each point was assigned to, and `model.cluster_centers_` reports the centroid (mean position) of each discovered group — the algorithm essentially found "these three points are close together, and those three are close together, and far from the first three."
 
-The critical point, and the amber callout states it directly: the algorithm invents cluster IDs (arbitrary integers like 0 and 1) purely from geometric proximity; humans still decide whether the grouping is useful and what it means. This is the practical version of the previous slide's "no single correct answer" point. Cluster label "0" and cluster label "1" carry no intrinsic meaning whatsoever — the algorithm has discovered a geometric partition of the data, nothing more. It is a human who might later look at cluster 0's typical purchasing pattern and decide to call it "budget shoppers," or look at cluster 1 and call it "premium customers" — that naming and interpretation step is entirely outside what k-means computed, and re-running k-means with a different random seed could easily produce label 0 and label 1 swapped, or even a different partition altogether if the true cluster structure is ambiguous.
+The data only has inputs - no labels.
+
+The model is instructed to only look for 2 groups. 
+
+The data clusters around $(1,1)$ and $(8,9)$
+
+The model "learns" to split the data into two groups and reports which data is associated with which group.
+
+The algorithm invents cluster IDs and then humans decide if they are helpful.
 
 Transition: unsupervised learning discovers structure without any external feedback signal at all; reinforcement learning, covered next, sits at the opposite extreme — it does get feedback, but that feedback is a delayed, evaluative reward rather than a per-example label.
 -->
@@ -262,7 +307,7 @@ glowSeed: 207
 <div class="grid grid-cols-2 gap-8 mt-3 items-center">
 
 <div>
-<v-clicks>
+<v-clicks at="2">
 
 - An **agent** chooses actions inside an **environment**
 - The environment returns a new state and a reward
@@ -271,14 +316,14 @@ glowSeed: 207
 
 </v-clicks>
 
-<div v-click class="mt-5" border="2 solid orange-800" bg="orange-800/20" rounded-lg p-4>
+<div v-click="6" class="mt-5" border="2 solid orange-800" bg="orange-800/20" rounded-lg p-4>
 
 $$\pi^\star=\arg\max_\pi\;\mathbb E\!\left[\sum_{t=0}^{T}\gamma^t r_t\mid\pi\right]$$
 
 </div>
 </div>
 
-<div v-click>
+<div v-click="1">
 <svg viewBox="0 0 430 300" class="w-full">
   <defs><marker id="rlArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#cbd5e1"/></marker></defs>
   <rect x="25" y="95" width="135" height="95" rx="14" fill="#0f766e55" stroke="#2dd4bf" stroke-width="3"/>
@@ -295,9 +340,14 @@ $$\pi^\star=\arg\max_\pi\;\mathbb E\!\left[\sum_{t=0}^{T}\gamma^t r_t\mid\pi\rig
 </div>
 
 <!--
-Reinforcement learning's setup is fundamentally different from both previous paradigms, and the diagram's agent-environment loop makes the difference concrete: an agent chooses an action $a_t$ at each time step; the environment responds with a new state $s_{t+1}$ and a scalar reward $r_t$; the agent's goal is to learn a policy $\pi$ — a rule for choosing actions given states — that maximizes cumulative reward over time, not just the immediate next reward. The boxed formula $\pi^\star=\arg\max_\pi\mathbb E[\sum_{t=0}^T \gamma^t r_t \mid \pi]$ states this precisely: sum up rewards over the whole trajectory (time steps $0$ through $T$), discount future rewards by $\gamma^t$ (a discount factor between 0 and 1, so rewards further in the future count less than immediate ones — reflecting both uncertainty about the future and, in many settings, a genuine preference for sooner reward), and find the policy that maximizes the expected value of that discounted sum.
+Reinforcement learning provides feedback on series of decisions. 
 
-The chess example makes the "feedback is evaluative, often delayed" bullet concrete: a chess-playing agent is never told "move 14 was the correct move" the way a supervised classifier is told "this email is spam" — it may only receive a single win/loss signal at the very end of a 40-move game. This creates the credit-assignment problem, worth naming explicitly: given only a final win or loss, which of the 40 individual moves actually deserved credit or blame for that outcome? A move made early in the game might have set up a decisive advantage 20 moves later, and the algorithm has to somehow work backward from the delayed outcome to individual decisions — a fundamentally harder inference problem than supervised learning's direct per-example feedback.
+Use the example of chess 
+- Different sized rewards for taking different pieces. 
+- Very large reward for winning.
+- Choose the policy that has the largest expected reward.experience
+
+Gamma - discount rate. Used to weigh immediate rewards more heavily that future rewards.
 
 Be explicit that this course recognizes reinforcement learning as the third major paradigm and shows its defining structure here, but does not cover its algorithms (Q-learning, policy gradients, actor-critic methods) in depth — that material belongs in a dedicated reinforcement-learning course. Transition: having covered all three primary paradigms in isolation, the next slide covers hybrid approaches that blend them.
 -->
@@ -336,11 +386,20 @@ Modern systems often combine paradigms: <strong>self-supervised pretraining → 
 </div>
 
 <!--
-These two hybrid terms appear constantly in modern ML discussion and are worth defining precisely, since they are often conflated with each other and with the three primary paradigms. Semi-supervised learning is a direct hybrid: it combines a small labeled set (the violet dots) with a much larger pool of unlabeled data (the gray dots) — exploiting the fact that labels are expensive to collect (as flagged on the Supervised Learning slide) but unlabeled data is often cheap and abundant. The intuition is that the unlabeled data's overall structure (which points cluster near which) can help the algorithm generalize better from the few labels it does have, essentially borrowing unsupervised learning's structure-discovery to boost supervised learning's label-efficiency.
+These two hybrid terms appear constantly in modern ML discussion and are worth defining precisely, since they are often conflated with each other and with the three primary paradigms. 
 
-Self-supervised learning is a different idea, despite the similar name: it creates its own labels directly from the unlabeled data's structure, requiring no human annotation at all. The masked-word example is the canonical case: take an ordinary sentence, hide one word, and train a model to predict the hidden word from its surrounding context — the "label" (the hidden word) was never manually annotated by a human, it was mechanically carved out of naturally occurring text. This is precisely why self-supervision powers much of large language model pretraining: given a large enough corpus of text, this masked/next-word-prediction task generates effectively unlimited free training examples.
+Semi-supervised learning is a direct hybrid:
+- combines a small labeled set (the violet dots) 
+- with a much larger pool of unlabeled data (the gray dots) 
 
-The closing line names the pattern that has become dominant in modern deep learning: self-supervised pretraining (learn general-purpose representations from a huge unlabeled corpus using a self-generated task like masked-word prediction) followed by supervised fine-tuning (adapt that pretrained model to a specific labeled task with comparatively few labeled examples). This is worth flagging as a preview of ideas the Neural Networks and Deep Learning Basics module will return to. Transition: with all five categories (three primary, two hybrid) now on the table, the next slide compares the three primary paradigms side by side in a single table.
+Exploits the fact that labels are expensive to collect (as flagged on the Supervised Learning slide) but unlabeled data is often cheap and abundant. 
+
+The intuition is that the unlabeled data's overall structure (which points cluster near which) can help the algorithm generalize better from the few labels it does have, essentially borrowing unsupervised learning's structure-discovery to boost supervised learning's label-efficiency.
+
+EXAMPLE - Self-training. Train on small sample, run inference on large sample, keep high confident predictions and retrain.
+
+Self-supervised learning - Creates its own labels from unlabeled data without human annotation.
+
 -->
 
 ---
