@@ -26,12 +26,12 @@ glowSeed: 421
 
 <div class="pt-5 opacity-80 text-lg">Supervised Learning · Classification</div>
 
-<svg role="img" aria-label="A query star surrounded by five nearby labeled points with a three to two majority" viewBox="0 0 650 260" class="w-full max-w-2xl mx-auto mt-7">
+<svg role="img" aria-label="A query star surrounded by five nearby labeled points with a three to two majority" viewBox="0 0 650 280" class="w-full max-w-2xl mx-auto mt-7">
   <circle cx="330" cy="135" r="105" fill="#0f766e22" stroke="#2dd4bf" stroke-width="3" stroke-dasharray="8 6"/>
   <g fill="#60a5fa"><circle cx="280" cy="85" r="10"/><circle cx="385" cy="95" r="10"/><circle cx="355" cy="195" r="10"/></g>
   <g fill="#fb923c"><circle cx="245" cy="165" r="10"/><circle cx="420" cy="160" r="10"/></g>
   <text x="314" y="151" fill="#fbbf24" style="font-size:42px">★</text>
-  <text x="235" y="245" fill="#94a3b8">five neighbors → blue wins 3–2</text>
+  <text x="235" y="265" fill="#94a3b8">five neighbors → blue wins 3–2</text>
 </svg>
 
 <!--
@@ -132,7 +132,7 @@ glowSeed: 423.5
 <div>
 
 <div border="2 solid white/10" bg="white/5" rounded-lg p-4 class="text-sm">
-Query point $q = (2, 3)$, $k = 3$
+Query point <code>q = (2, 3)</code>, <code>k = 3</code>
 </div>
 
 <div class="mt-3 text-sm">
@@ -246,13 +246,13 @@ glowSeed: 425
 
 - k-NN assumes nearby points have similar labels
 - High-dimensional points spread out and become roughly equidistant
-- “Nearest” loses meaning as $d$ grows
+- “Nearest” loses meaning as $D$ grows
 - Feature selection or dimensionality reduction can restore useful neighborhoods
 
 </v-clicks>
 <div v-click border="2 solid orange-800" bg="orange-800/20" rounded-lg p-4 class="mt-5">
 
-$$\frac{d_{nearest}}{d_{farthest}}\longrightarrow1\quad\text{as }d\to\infty$$
+$$\frac{r_{\text{nearest}}}{r_{\text{farthest}}}\longrightarrow1\quad\text{as }D\to\infty$$
 
 </div>
 </div>
@@ -361,7 +361,148 @@ regressor = KNeighborsRegressor(n_neighbors=5)
 <!--
 Use the small table to crystallize the deployment tradeoff: for k-NN, fitting is essentially free (just store the data) but each prediction costs O(nd) in the naive case — comparing the query to all n stored points across d features — whereas logistic regression pays an expensive iterative optimization cost once at training time but then predicts with a single cheap dot product. If a system needs to serve millions of low-latency predictions per second, a compressed parametric model like logistic regression, or a tree, is usually the better production choice; k-NN is more attractive when training data changes frequently and retraining a parametric model would be inconvenient, or when the interpretability of "here are the similar past cases" is itself valuable.
 
-Mention spatial index structures briefly — KD-trees and ball trees, both available via scikit-learn's `algorithm` parameter — which can speed up nearest-neighbor search substantially in low-to-moderate dimensions by avoiding a full linear scan over every stored point, though their benefit erodes in high dimensions for the same curse-of-dimensionality reasons discussed earlier; their internal mechanics are out of scope for this course. Note also that `KNeighborsRegressor` is the direct regression counterpart: instead of a majority vote among the k nearest neighbors' labels, it averages the k nearest neighbors' numeric target values.
+Preview the next three slides: KD-trees and ball trees build a spatial index during fit, trading extra construction time and memory for faster searches. The O(nd) figure above describes brute-force prediction for one query; tree search costs depend on the data and may still approach a full scan. Note also that `KNeighborsRegressor` averages the k nearest neighbors' numeric target values instead of voting on labels.
+-->
+
+---
+glowSeed: 427.1
+---
+
+# Why Organize the Search?
+
+<div class="grid grid-cols-2 gap-7 mt-4 items-center">
+<div>
+<v-clicks>
+
+- Brute force measures distance to every point
+- A search tree groups nearby points
+- Keep a running list of the best k candidates
+- Each group has a **minimum possible distance**
+- Prune when that bound exceeds your k-th best
+
+</v-clicks>
+<div class="mt-5 text-sm" border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4>The bound is the closest point a group could conceivably hold. Build the index once during <code>fit</code>; reuse it for many predictions. The neighbor vote stays the same.</div>
+</div>
+<svg role="img" aria-label="Query with three nearby candidates; a distant group can be skipped because its closest possible point is beyond the current search radius" viewBox="0 0 460 310" class="w-full">
+  <circle cx="100" cy="155" r="65" fill="#0f766e22" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="6 5"/>
+  <g fill="#60a5fa"><circle cx="75" cy="125" r="7"/><circle cx="130" cy="135" r="7"/><circle cx="105" cy="210" r="7"/></g>
+  <text x="87" y="168" fill="#fbbf24" style="font-size:32px">★</text>
+  <line x1="100" y1="155" x2="165" y2="155" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="50" y="63" fill="#5eead4" style="font-size:16px">current k = 3 candidates</text>
+  <rect x="280" y="80" width="150" height="155" rx="14" fill="#47556922" stroke="#94a3b8" stroke-dasharray="6 5"/>
+  <g fill="#94a3b8"><circle cx="305" cy="105" r="6"/><circle cx="355" cy="115" r="6"/><circle cx="400" cy="100" r="6"/><circle cx="325" cy="165" r="6"/><circle cx="385" cy="175" r="6"/><circle cx="350" cy="210" r="6"/></g>
+  <line x1="165" y1="155" x2="280" y2="155" stroke="#fb923c" stroke-width="2"/>
+  <text x="291" y="63" fill="#fdba74" style="font-size:16px">skip this group</text>
+  <text x="39" y="281" fill="#cbd5e1" style="font-size:15px">Even its nearest edge is too far away.</text>
+</svg>
+</div>
+
+<!--
+Think of looking for nearby restaurants: if you already have three nearby options, you do not need to inspect every restaurant in a distant town. The tree supplies a rigorous minimum possible distance to each group. Once we have k candidates, compare that lower bound with the distance to our farthest candidate; if the bound is strictly greater, the whole group can be skipped. Otherwise search it and update the candidates. The dashed query circle is a conservative current search radius, which can shrink as better candidates are found.
+
+These are exact search methods with compatible metrics, not approximations. Equal-distance ties may be ordered differently across implementations. Grouping uses feature geometry, not class labels; the labels enter only after retrieval for voting. The speed benefit is data-dependent: construction and storage have a cost, and high-dimensional searches may visit most of the data. Benchmark against brute force on representative queries.
+-->
+
+---
+glowSeed: 427.2
+---
+
+# KD-Trees: Split Space into Boxes
+
+<div class="grid grid-cols-[1fr_1.4fr] gap-7 mt-4 items-center">
+<div>
+<v-clicks>
+
+<div border="2 solid white/5" bg="white/5" backdrop-blur-sm rounded-lg p-4>
+<div class="text-xs uppercase tracking-wider opacity-60">How it carves space</div>
+<div class="mt-1">Split on one feature at a cutoff; repeat to form nested boxes</div>
+</div>
+
+<div class="mt-4" border="2 solid white/5" bg="white/5" backdrop-blur-sm rounded-lg p-4>
+<div class="text-xs uppercase tracking-wider opacity-60">Its bound</div>
+<div class="mt-1">Distance to the nearest edge of the box</div>
+</div>
+
+</v-clicks>
+<div class="mt-6 text-sm" border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4><strong>KD</strong> means k-dimensional: here that refers to the number of features, separate from k-NN's neighbor count.</div>
+<div class="mt-4 text-sm opacity-80">Often useful with a modest number of numeric features.<br/><code>algorithm='kd_tree'</code></div>
+</div>
+<svg role="img" aria-label="KD-tree partitions two-dimensional space with one vertical split and two horizontal splits; query search overlaps the adjacent lower box but not the right half" viewBox="0 0 460 330" class="w-full">
+  <rect x="45" y="30" width="365" height="240" fill="#1e293b" stroke="#94a3b8"/>
+  <rect x="45" y="30" width="185" height="115" fill="#0f766e44"/>
+  <rect x="230" y="30" width="180" height="240" fill="#47556933"/>
+  <line x1="230" y1="30" x2="230" y2="270" stroke="#60a5fa" stroke-width="3"/>
+  <line x1="45" y1="145" x2="230" y2="145" stroke="#2dd4bf" stroke-width="3"/>
+  <line x1="230" y1="195" x2="410" y2="195" stroke="#a78bfa" stroke-width="3"/>
+  <g fill="#60a5fa"><circle cx="90" cy="75" r="6"/><circle cx="150" cy="95" r="6"/><circle cx="185" cy="65" r="6"/><circle cx="115" cy="163" r="6"/><circle cx="80" cy="230" r="6"/><circle cx="180" cy="210" r="6"/></g>
+  <g fill="#94a3b8"><circle cx="265" cy="80" r="6"/><circle cx="345" cy="125" r="6"/><circle cx="380" cy="65" r="6"/><circle cx="290" cy="235" r="6"/><circle cx="365" cy="225" r="6"/></g>
+  <circle cx="120" cy="120" r="55" fill="#0f766e11" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="107" y="132" fill="#fbbf24" style="font-size:30px">★</text>
+  <text x="270" y="169" fill="#fdba74" style="font-size:15px">skip right half</text>
+  <text x="125" y="293" fill="#cbd5e1" style="font-size:16px">feature 1 →</text>
+  <text x="19" y="190" fill="#cbd5e1" style="font-size:16px" transform="rotate(-90 19 190)">feature 2 →</text>
+  <text x="48" y="322" fill="#fbbf24" style="font-size:14px">Circle crosses split: also check the lower box.</text>
+</svg>
+</div>
+
+<!--
+Read the graphic as successive partitions: first the blue vertical cut, then a horizontal cut within each half. Each leaf stores a small group of points. Splits often use a median to keep groups balanced; the choice of split feature varies by implementation. In higher dimensions the boxes are hyperrectangles.
+
+For the query star, search its upper-left box first. Do not stop there: a close point may lie just across a split. The current candidate circle overlaps the lower-left box, so that box must also be considered. The right half lies entirely beyond the circle and can be pruned. A search returns through the hierarchy to inspect any remaining boxes whose distance bounds allow a better neighbor. Labels do not determine these splits; this is a spatial index rather than a classification decision tree.
+-->
+
+---
+glowSeed: 427.3
+---
+
+# Ball Trees: Bound Groups with Spheres
+
+<div class="grid grid-cols-[1fr_1.4fr] gap-7 mt-3 items-center">
+<div>
+<v-clicks>
+
+<div border="2 solid white/5" bg="white/5" backdrop-blur-sm rounded-lg p-4>
+<div class="text-xs uppercase tracking-wider opacity-60">How it carves space</div>
+<div class="mt-1">Enclose a group in a ball — center <em>c</em>, radius <em>R</em>; repeat</div>
+</div>
+
+<div class="mt-4 pt-4 px-4 pb-1" border="2 solid white/5" bg="white/5" backdrop-blur-sm rounded-lg>
+<div class="text-xs uppercase tracking-wider opacity-60">Its bound</div>
+
+$$\max(0,\|q-c\|-R)$$
+
+</div>
+
+</v-clicks>
+<div class="mt-6 text-sm opacity-80">Can suit clustered geometry; speed depends on the data.<br/><code>algorithm='ball_tree'</code></div>
+</div>
+<svg role="img" aria-label="A parent ball contains two groups. The query is near the left group; the right ball is at least seven units away because its center is ten units away and radius is three" viewBox="0 0 460 340" class="w-full">
+  <ellipse cx="240" cy="151" rx="195" ry="135" fill="none" stroke="#64748b" stroke-dasharray="4 5"/>
+  <circle cx="130" cy="150" r="55" fill="#0f766e22" stroke="#2dd4bf" stroke-width="2"/>
+  <circle cx="340" cy="150" r="72" fill="#47556933" stroke="#fb923c" stroke-width="2"/>
+  <g fill="#60a5fa"><circle cx="110" cy="125" r="6"/><circle cx="145" cy="130" r="6"/><circle cx="130" cy="180" r="6"/></g>
+  <g fill="#94a3b8"><circle cx="310" cy="120" r="6"/><circle cx="365" cy="110" r="6"/><circle cx="380" cy="165" r="6"/><circle cx="325" cy="195" r="6"/></g>
+  <text x="87" y="162" fill="#fbbf24" style="font-size:30px">★</text>
+  <circle cx="340" cy="150" r="4" fill="#f8fafc"/>
+  <line x1="100" y1="150" x2="340" y2="150" stroke="#cbd5e1" stroke-dasharray="5 5"/>
+  <line x1="268" y1="150" x2="340" y2="150" stroke="#fb923c" stroke-width="3"/>
+  <text x="289" y="175" fill="#fdba74" style="font-size:16px">R = 3</text>
+  <text x="195" y="136" fill="#cbd5e1" style="font-size:15px">10 to center</text>
+  <text x="89" y="218" fill="#5eead4" style="font-size:15px">search first</text>
+  <text x="320" y="248" fill="#fdba74" style="font-size:15px">c</text>
+  <text x="39" y="310" fill="#cbd5e1" style="font-size:15px">10 − 3 = 7 away at minimum: skip if current</text>
+  <text x="39" y="332" fill="#cbd5e1" style="font-size:15px">k neighbors are all within 2 units of the query.</text>
+</svg>
+</div>
+
+<!--
+A ball is a circle in two dimensions and a sphere in three; the same center-and-radius idea extends to more features. The outer outline is a schematic parent group. Each node bounds its own assigned points; child balls can overlap, and their entire volumes need not fit inside the parent's ball. Continue subdividing until leaf groups are small enough to scan directly.
+
+The triangle inequality gives the distance bound: if the group's center is 10 units from the query and all its points lie within 3 units of that center, none can be closer than 7. With k candidates already within 2 units, skip that group. If the query is inside a ball, the lower bound is zero, not negative. Compare bounds, descend into promising groups, and update candidates just as with a KD-tree.
+
+Both structures accelerate exact neighbor retrieval using compatible metrics; neither guarantees a speedup. Ball trees are not tied to axis-aligned cuts and can work well with structured data, but high dimensions can weaken pruning for both. More time and memory at fit may pay off across repeated queries. For a concrete application, compare brute, kd_tree, and ball_tree on held-out query points with identical scaling, metric, and neighbor count.
+
+Reference: https://scikit-learn.org/stable/modules/neighbors.html#nearest-neighbor-algorithms
 -->
 
 ---

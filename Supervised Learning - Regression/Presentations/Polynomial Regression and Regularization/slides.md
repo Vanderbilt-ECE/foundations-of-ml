@@ -357,7 +357,7 @@ $$
 <div v-click border="2 solid white/5" bg="white/5" rounded-lg p-4>
 <div class="font-bold text-teal-300 mb-2">Why this is the bias–variance tradeoff</div>
 <div class="text-sm opacity-85">
-OLS is unbiased but can have huge variance along directions with small $s_i$, where a tiny amount of noise in $y$ produces a huge change in $\hat w$. Ridge accepts a little bias along exactly those directions in exchange for a large reduction in variance — the same tradeoff degree controls for polynomial features, now controlled continuously by $\lambda$.
+OLS is unbiased but can have huge variance along directions with small sᵢ, where a tiny amount of noise in y produces a huge change in ŵ. Ridge accepts a little bias along exactly those directions in exchange for a large reduction in variance — the same tradeoff degree controls for polynomial features, now controlled continuously by λ.
 </div>
 </div>
 </div>
@@ -480,7 +480,7 @@ $$
 </div>
 
 <div v-click class="mt-4 text-sm" border="2 solid white/5" bg="white/5" rounded-lg p-4>
-"Soft-thresholding": any OLS coefficient smaller than $\lambda/2$ in magnitude is pushed to exactly zero; larger ones are shrunk by a constant amount, not a constant factor.
+"Soft-thresholding": any OLS coefficient smaller than λ/2 in magnitude is pushed to exactly zero; larger ones are shrunk by a constant amount, not a constant factor.
 </div>
 </div>
 

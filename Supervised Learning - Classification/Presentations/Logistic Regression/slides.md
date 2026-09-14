@@ -193,8 +193,11 @@ $$J(w)=-\log L(w)$$
 </div>
 
 <div class="mt-4 text-sm" border="2 solid amber-800" bg="amber-800/20" rounded-lg p-3>
-Worked: $y=1,\ \hat p=0.8\Rightarrow-\log(0.8)\approx0.223$.
-$\quad y=1,\ \hat p=0.2\Rightarrow-\log(0.2)\approx1.609$
+Worked examples:
+
+$$y=1,\quad \hat p=0.8\quad\Rightarrow\quad -\log(0.8)\approx0.223$$
+
+$$y=1,\quad \hat p=0.2\quad\Rightarrow\quad -\log(0.2)\approx1.609$$
 </div>
 </div>
 </div>

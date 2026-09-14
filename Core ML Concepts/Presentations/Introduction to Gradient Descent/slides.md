@@ -517,46 +517,292 @@ Tie this back to the Loss Functions lecture: this is the same robustness-to-outl
 glowSeed: 339
 ---
 
-# Logistic Loss · Setup and the Key Building Block
+# Logistic Loss · Setup and the Sigmoid Model
 
-<div class="mt-4" border="2 solid orange-800" bg="orange-800/20" rounded-lg px-5 py-3>
+<div v-click class="mt-3" border="2 solid orange-800" bg="orange-800/20" rounded-lg px-5 py-3>
 <div class="text-sm font-bold text-orange-300">Loss: log loss / cross-entropy</div>
 
 $$\ell(\theta) = -\frac{1}{n}\sum_{i=1}^n \Big[y_i \log \hat p_i + (1-y_i)\log(1-\hat p_i)\Big]$$
 
 </div>
 
-<div class="grid grid-cols-2 gap-5 mt-4">
-<div border="2 solid blue-800" bg="blue-800/20" rounded-lg px-5 py-3>
+<div class="grid grid-cols-2 gap-5 mt-3 items-start">
+<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg px-5 py-3>
 <div class="text-sm font-bold text-blue-300">Model: sigmoid of a linear score</div>
 
 $$\hat p_i = \sigma\big(x_i^\top\theta\big) = \frac{1}{1+e^{-x_i^\top\theta}}$$
 
-</div>
-<div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg px-5 py-3>
-<div class="text-sm font-bold text-violet-300">The building block that makes it all work</div>
-
-$$\sigma'(z) = \sigma(z)\big(1-\sigma(z)\big)$$
+<div class="mt-2 text-sm opacity-80">Any real score in, a probability in (0, 1) out. Saturating at both ends, steepest at the decision boundary.</div>
 
 </div>
+
+<div v-click>
+<svg viewBox="0 0 420 264" class="w-full max-w-[380px] mx-auto" role="img" aria-label="A plot of the sigmoid function. The curve rises smoothly from near zero on the left to near one on the right, passing through one half at z equals zero, with dashed asymptotes at zero and one.">
+  <line x1="40" y1="40" x2="400" y2="40" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <line x1="40" y1="230" x2="400" y2="230" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <line x1="40" y1="135" x2="400" y2="135" stroke="#475569" stroke-width="1.5" stroke-dasharray="3 6"/>
+  <line x1="220" y1="32" x2="220" y2="238" stroke="#64748b" stroke-width="2"/>
+  <line x1="34" y1="230" x2="406" y2="230" stroke="#64748b" stroke-width="2"/>
+  <polyline fill="none" stroke="#60a5fa" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+    points="40,229.5 55,229.2 70,228.7 85,227.9 100,226.6 115,224.4 130,221.0 145,215.6 160,207.4 175,195.3 190,178.9 205,158.3 220,135 235,111.7 250,91.1 265,74.7 280,62.7 295,54.4 310,49.0 325,45.6 340,43.4 355,42.1 370,41.3 385,40.8 400,40.5"/>
+  <circle cx="220" cy="135" r="5.5" fill="#f8fafc"/>
+  <text x="26" y="45" fill="#94a3b8" style="font-size: 15px" text-anchor="end">1</text>
+  <text x="26" y="235" fill="#94a3b8" style="font-size: 15px" text-anchor="end">0</text>
+  <text x="26" y="140" fill="#94a3b8" style="font-size: 15px" text-anchor="end">½</text>
+  <text x="412" y="226" fill="#94a3b8" style="font-size: 16px" text-anchor="end">z</text>
+  <text x="232" y="128" fill="#93c5fd" style="font-size: 14px">σ(0) = ½</text>
+  <text x="90" y="72" fill="#94a3b8" style="font-size: 14px" text-anchor="middle">saturates → 0</text>
+  <text x="342" y="206" fill="#94a3b8" style="font-size: 14px" text-anchor="middle">saturates → 1</text>
+  <text x="220" y="258" fill="#5eead4" style="font-size: 15px" text-anchor="middle">σ(z) = 1 / (1 + e⁻ᶻ)</text>
+</svg>
+</div>
 </div>
 
-<div v-click class="mt-4" border="2 solid white/10" bg="white/5" rounded-lg px-5 py-3 text-sm>
-The sigmoid's derivative is expressible in terms of the sigmoid itself. Chaining it through the log terms causes almost everything to cancel — which is why a loss this messy-looking produces a gradient as clean as MSE's.
-</div>
-
-<div v-click class="mt-3 text-center text-sm opacity-75">Two very different-looking losses. Watch what happens to their gradients.</div>
+<div v-click class="mt-2 text-center text-sm opacity-75">A log of a sigmoid of a dot product. Watch what its gradient turns out to be.</div>
 
 <!--
-Split into two slides deliberately: the setup here, the payoff next. Resist the urge to show the destination early.
+This is the first of four slides on logistic regression: setup here, the classification pipeline next, then the sigmoid derivative, then the payoff. Resist the urge to show the destination early.
 
 Start by reminding students where both pieces came from. The sigmoid appeared as the standard way to turn an unbounded linear score $x_i^\top\theta$ into a probability in $(0,1)$; log loss appeared in the previous lecture, where it was derived from a Bernoulli maximum-likelihood argument rather than invented.
 
-Then dwell on the derivative identity, because it is genuinely the crux. Derive it quickly if time allows: writing $\sigma(z) = (1+e^{-z})^{-1}$ and differentiating gives $e^{-z}/(1+e^{-z})^2$, which factors as $\frac{1}{1+e^{-z}}\cdot\frac{e^{-z}}{1+e^{-z}} = \sigma(z)(1-\sigma(z))$. It is one of the small number of functions whose derivative is a polynomial in itself, and that self-referential structure is exactly what makes the cancellation on the next slide happen.
+Walk the curve itself, since it is the object every later slide manipulates. Three features to name out loud: it is bounded between 0 and 1, so its output can be read as a probability; it passes through exactly $\tfrac12$ at $z=0$, which is where the decision boundary will sit; and it flattens at both ends, so a score of $+6$ and a score of $+60$ produce nearly the same probability. That flattening is benign here and becomes a problem later — it is the vanishing-gradient phenomenon in miniature, and it returns in force in the Neural Networks unit.
 
-Ask the class to predict, before the reveal, what the gradient will look like. Most will expect something with $\sigma$ terms scattered through it, extra products, maybe a quotient — because the loss has logarithms and the model has an exponential. Getting them to commit to a wrong guess makes the next slide land much harder.
+Ask the class to predict, before the next two slides, what the gradient of this loss will look like. Most will expect something with $\sigma$ terms scattered through it, extra products, maybe a quotient — because the loss has logarithms and the model has an exponential. Getting them to commit to a wrong guess makes the payoff slide land much harder.
+-->
 
-One practical aside if a student asks: $\sigma(z)(1-\sigma(z))$ is at most $1/4$, and it collapses toward zero when the score is large in magnitude. That is the vanishing-gradient phenomenon in miniature — a confidently saturated sigmoid learns very slowly — and it returns in force in the Neural Networks unit.
+---
+glowSeed: 346
+---
+
+# From Score to Probability
+
+<div class="mt-2 text-sm opacity-80">Classification is regression's linear score, pushed through one squashing function.</div>
+
+<div class="mt-3 flex justify-center">
+<svg viewBox="0 0 880 210" class="w-full max-w-[820px]" role="img" aria-label="A pipeline diagram. Features x i and parameters theta enter a linear score box computing x i transpose theta, which feeds the sigmoid box, which outputs the probability p hat i between zero and one, which a threshold at one half turns into a predicted class.">
+  <defs>
+    <marker id="lrPipeArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <g v-click>
+    <rect x="8" y="58" width="150" height="66" rx="10" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+    <text x="83" y="88" fill="#e2e8f0" style="font-size: 20px" text-anchor="middle">xᵢ , θ</text>
+    <text x="83" y="110" fill="#94a3b8" style="font-size: 13px" text-anchor="middle">features, parameters</text>
+  </g>
+
+  <g v-click>
+    <line x1="166" y1="91" x2="212" y2="91" stroke="#94a3b8" stroke-width="2" marker-end="url(#lrPipeArrow)"/>
+    <rect x="220" y="58" width="170" height="66" rx="10" fill="#2563eb22" stroke="#60a5fa" stroke-width="2"/>
+    <text x="305" y="88" fill="#dbeafe" style="font-size: 21px" text-anchor="middle">zᵢ = xᵢᵀθ</text>
+    <text x="305" y="110" fill="#93c5fd" style="font-size: 13px" text-anchor="middle">linear score, any real value</text>
+    <text x="305" y="34" fill="#93c5fd" style="font-size: 14px" text-anchor="middle">the model</text>
+  </g>
+
+  <g v-click>
+    <line x1="398" y1="91" x2="444" y2="91" stroke="#94a3b8" stroke-width="2" marker-end="url(#lrPipeArrow)"/>
+    <rect x="452" y="58" width="160" height="66" rx="10" fill="#7c3aed22" stroke="#a78bfa" stroke-width="2"/>
+    <text x="532" y="88" fill="#ede9fe" style="font-size: 21px" text-anchor="middle">σ( zᵢ )</text>
+    <text x="532" y="110" fill="#c4b5fd" style="font-size: 13px" text-anchor="middle">squash into (0, 1)</text>
+    <text x="532" y="34" fill="#c4b5fd" style="font-size: 14px" text-anchor="middle">the link</text>
+  </g>
+
+  <g v-click>
+    <line x1="620" y1="91" x2="666" y2="91" stroke="#94a3b8" stroke-width="2" marker-end="url(#lrPipeArrow)"/>
+    <rect x="674" y="58" width="170" height="66" rx="10" fill="#0f766e33" stroke="#2dd4bf" stroke-width="2"/>
+    <text x="759" y="88" fill="#ccfbf1" style="font-size: 21px" text-anchor="middle">p̂ᵢ ∈ (0, 1)</text>
+    <text x="759" y="110" fill="#5eead4" style="font-size: 13px" text-anchor="middle">P( yᵢ = 1 | xᵢ )</text>
+    <text x="759" y="34" fill="#5eead4" style="font-size: 14px" text-anchor="middle">the prediction</text>
+  </g>
+
+  <g v-click>
+    <line x1="759" y1="132" x2="759" y2="160" stroke="#94a3b8" stroke-width="2" marker-end="url(#lrPipeArrow)"/>
+    <text x="759" y="182" fill="#e2e8f0" style="font-size: 15px" text-anchor="middle">ŷᵢ = 1 if p̂ᵢ ≥ ½</text>
+  </g>
+
+  <text v-click x="290" y="176" fill="#fdba74" style="font-size: 15px" text-anchor="middle">only θ is learned — everything downstream is fixed</text>
+</svg>
+</div>
+
+<div class="grid grid-cols-2 gap-5 mt-2">
+<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg px-5 py-3 text-sm>
+<div class="font-bold text-blue-300 mb-1">Same skeleton as regression</div>
+
+The linear part $x_i^\top\theta$ is identical to the regression model. Classification only adds $\sigma$ on the end.
+
+</div>
+<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg px-5 py-3 text-sm>
+<div class="font-bold text-teal-300 mb-1">Why we need the gradient of σ</div>
+
+The loss sees $\hat p_i$, but we differentiate with respect to $\theta$. The chain rule has to pass *through* $\sigma$.
+
+</div>
+</div>
+
+<!--
+Slow this slide down — it is the conceptual bridge to the whole Classification unit, and students who miss it will treat logistic regression as an unrelated new model rather than as the regression model with one function bolted on.
+
+Walk the pipeline left to right, naming what changes and what does not. The features and parameters enter exactly as in regression. The linear score $z_i = x_i^\top\theta$ is exactly the regression prediction — same dot product, same design matrix, same shapes. What is new is only that we refuse to report $z_i$ as the answer, because a probability cannot be $-3.7$ or $12.4$.
+
+That is the entire job of the sigmoid: it is a *link function* that maps the unbounded score onto $(0,1)$ so the output can be read as $P(y_i = 1 \mid x_i)$. Emphasize the monotonicity — larger score means larger probability, always — so the sigmoid reorders nothing. It only rescales.
+
+Point at the orange annotation: the only learnable object in the whole diagram is $\theta$. The sigmoid has no parameters, and the threshold is a decision we impose afterward, not something fitted. A common student question is whether the $\tfrac12$ threshold is learned; it is not, and it is also not sacred — it can be moved to trade precision against recall, which is a Classification-unit topic.
+
+Close by setting up the next slide. The loss is written in terms of $\hat p_i$, but gradient descent updates $\theta$. Between them sits $\sigma$, so the chain rule must pass through it, and that means we need $\partial \sigma / \partial \theta_j$. That derivative is the entire content of the next slide.
+-->
+
+---
+glowSeed: 347
+---
+
+# Deriving the Gradient of σ(xᵀθ)
+
+<div class="grid grid-cols-2 gap-6 mt-2 items-start">
+<div>
+<div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg px-3 py-3>
+<div class="text-sm font-bold text-violet-300 mb-1">Step 1 — differentiate σ with respect to its own input</div>
+
+$$
+\begin{aligned}
+\sigma(z) &= \big(1+e^{-z}\big)^{-1} \\[3pt]
+\sigma'(z) &= -\big(1+e^{-z}\big)^{-2}\cdot\big(-e^{-z}\big)
+ = \frac{e^{-z}}{\big(1+e^{-z}\big)^{2}} \\[3pt]
+&= \underbrace{\frac{1}{1+e^{-z}}}_{\sigma(z)}\cdot\underbrace{\frac{e^{-z}}{1+e^{-z}}}_{1-\sigma(z)}
+ = \sigma(z)\big(1-\sigma(z)\big)
+\end{aligned}
+$$
+
+</div>
+
+<div v-click class="mt-2" border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3>
+<div class="text-sm font-bold text-blue-300 mb-1">Step 2 — differentiate the score with respect to θ<sub>j</sub></div>
+
+$$z_i = \sum_{m} x_{im}\theta_m \quad\Longrightarrow\quad \frac{\partial z_i}{\partial \theta_j} = x_{ij}$$
+
+</div>
+</div>
+
+<div>
+<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
+<div class="text-sm font-bold text-teal-300 mb-1">Step 3 — chain them together</div>
+
+$$
+\begin{aligned}
+\frac{\partial \hat p_i}{\partial \theta_j}
+= \frac{\partial}{\partial \theta_j}\,\sigma\big(x_i^\top\theta\big)
+&= \sigma'(z_i)\cdot\frac{\partial z_i}{\partial \theta_j} \\[3pt]
+&= \hat p_i\big(1-\hat p_i\big)\,x_{ij}
+\end{aligned}
+$$
+
+</div>
+
+<div v-click class="mt-2" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3 text-center>
+<div class="text-sm font-bold text-teal-300 mb-1">Stacked over all k parameters</div>
+
+$$\nabla_\theta\,\sigma\big(x_i^\top\theta\big) = \hat p_i\big(1-\hat p_i\big)\,x_i$$
+
+</div>
+
+<div v-click class="mt-2" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-2 text-sm>
+
+<span class="font-bold text-amber-300">No minus sign here.</span> MSE carried one from the residual $y_i - x_i^\top\theta$; here we differentiate the prediction itself.
+
+</div>
+</div>
+</div>
+
+<div v-click class="mt-2 text-center text-sm opacity-80">
+
+Keep the factor $\hat p_i(1-\hat p_i)$ in view — on the next slide it cancels exactly.
+
+</div>
+
+<!--
+This slide is the crux of the logistic derivation, and it is worth doing on the board rather than only on the screen.
+
+Step 1 is the identity everything else rests on. Write $\sigma(z) = (1+e^{-z})^{-1}$ and apply the power rule and chain rule: the outer derivative gives $-(1+e^{-z})^{-2}$ and the inner derivative of $e^{-z}$ gives $-e^{-z}$, and the two minus signs cancel. The factoring step is the one to slow down on — split the single fraction into $\frac{1}{1+e^{-z}}$ times $\frac{e^{-z}}{1+e^{-z}}$, then note that the second factor is $1-\sigma(z)$ because $\frac{e^{-z}}{1+e^{-z}} = \frac{(1+e^{-z}) - 1}{1+e^{-z}}$. The sigmoid is one of a small number of functions whose derivative is a polynomial in itself, and that self-referential structure is exactly what makes the cancellation on the next slide happen.
+
+Step 2 is the same inner derivative already used for MSE, so it should be a five-second step: only the $j$-th term of the dot product involves $\theta_j$, so the derivative is $x_{ij}$.
+
+Flag the amber card explicitly, because this is a reliable source of sign errors on exams. On the MSE slide the boxed step was $\partial(y_i - x_i^\top\theta)/\partial\theta_j = -x_{ij}$, minus sign and all. That minus came from the residual, not from the model. Here there is no residual — we are differentiating the prediction directly — so nothing flips.
+
+Two sanity checks worth voicing. Shapes: $\hat p_i(1-\hat p_i)$ is a scalar and $x_i$ is a $k$-vector, so the gradient is a $k$-vector, matching $\theta$. Magnitude: $\hat p(1-\hat p)$ peaks at $1/4$ when $\hat p = 1/2$ and collapses toward 0 as the sigmoid saturates, so a confidently-predicting model barely moves — the vanishing-gradient phenomenon again.
+
+End by pointing forward. This $\hat p_i(1-\hat p_i)$ factor looks like it will make the log-loss gradient ugly. It does the opposite: the derivative of the log terms contributes a $1/(\hat p_i(1-\hat p_i))$ factor, and the two annihilate. That is the next slide.
+-->
+
+---
+glowSeed: 348
+---
+
+# Chaining Through the Log Loss · The Cancellation
+
+<div class="grid grid-cols-2 gap-5 mt-2 items-start">
+<div>
+<div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg px-3 py-2>
+<div class="text-sm font-bold text-violet-300 mb-1">Step 1 — chain rule, with p̂<sub>i</sub> as the inner function</div>
+
+$$\frac{\partial \ell}{\partial \theta_j} = -\frac{1}{n}\sum_{i=1}^n \left[\frac{y_i}{\hat p_i} - \frac{1-y_i}{1-\hat p_i}\right]\frac{\partial \hat p_i}{\partial \theta_j}$$
+
+</div>
+
+<div v-click class="mt-2" border="2 solid blue-800" bg="blue-800/20" rounded-lg px-3 py-2>
+<div class="text-sm font-bold text-blue-300 mb-1">Step 2 — put the bracket over one denominator</div>
+
+$$
+\begin{aligned}
+\frac{y_i}{\hat p_i} - \frac{1-y_i}{1-\hat p_i}
+&= \frac{y_i\big(1-\hat p_i\big)-\big(1-y_i\big)\hat p_i}{\hat p_i\big(1-\hat p_i\big)} \\[3pt]
+&= \frac{y_i-\hat p_i}{\hat p_i\big(1-\hat p_i\big)}
+\end{aligned}
+$$
+
+</div>
+</div>
+
+<div>
+<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg px-3 py-2>
+<div class="text-sm font-bold text-teal-300 mb-1">Step 3 — substitute the previous slide's result and cancel</div>
+
+$$
+\begin{aligned}
+\frac{\partial \ell}{\partial \theta_j}
+&= -\frac{1}{n}\sum_i \frac{y_i-\hat p_i}{\cancel{\hat p_i(1-\hat p_i)}}\cdot \cancel{\hat p_i(1-\hat p_i)}\,x_{ij} \\[3pt]
+&= \frac{1}{n}\sum_i \big(\hat p_i - y_i\big)\,x_{ij}
+\end{aligned}
+$$
+
+</div>
+
+<div v-click class="mt-2" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-3 py-2 text-center>
+<div class="text-sm font-bold text-teal-300 mb-1">Step 4 — stack the k partials into a vector</div>
+
+$$\nabla_\theta \ell(\theta) = \frac{1}{n}X^\top\big(\hat p - y\big)$$
+
+</div>
+
+<div v-click class="mt-2" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-3 py-2 text-sm>
+
+<span class="font-bold text-amber-300">Where the minus went.</span> The loss's leading $-\tfrac1n$ flips $y_i - \hat p_i$ into $\hat p_i - y_i$ — prediction minus target, as in MSE.
+
+</div>
+</div>
+</div>
+
+<!--
+This slide exists because the payoff on the next slide is otherwise pure assertion. Students who have just been told the $\hat p_i(1-\hat p_i)$ factor is a problem need to see it die.
+
+Step 1 is mechanical, but say out loud why it is legitimate: we are differentiating a function of $\hat p_i$, and $\hat p_i$ is a function of $\theta$, so the chain rule applies with $\hat p_i$ as the inner variable. The derivative of $\log \hat p_i$ is $1/\hat p_i$; the derivative of $\log(1-\hat p_i)$ is $-1/(1-\hat p_i)$, and that inner minus sign is where the minus in the bracket comes from. Students who lose a sign here almost always lost it there.
+
+Step 2 is the algebra that makes the whole thing work, and it is worth doing on the board rather than reading off the slide. Expand the numerator: $y_i - y_i\hat p_i - \hat p_i + y_i\hat p_i$. The two $y_i\hat p_i$ terms cancel, leaving simply $y_i - \hat p_i$. Ask the class to do this expansion themselves — it takes fifteen seconds and it is the only genuinely surprising line on the slide.
+
+Step 3 is the moment. Point at the denominator from Step 2 and the factor from the previous slide and note that they are literally the same expression. The division annihilates it. Emphasize that this is not a convenient approximation or a dropped small term; it is exact cancellation.
+
+Then Step 4 is the same design-matrix stacking used for MSE two lectures' worth of slides ago: a sum over $i$ weighted by $x_{ij}$ is row $j$ of $X^\top$ applied to the residual vector.
+
+Flag the amber card so nobody thinks the order flipped by accident. The loss is defined with a leading minus (it is a negative log-likelihood), and that minus is what turns $y - \hat p$ into $\hat p - y$.
+
+Worth stating explicitly before moving on: nothing about the sigmoid survives into the final gradient except through $\hat p$ itself. No exponentials, no quotients, no $\sigma'$ anywhere. That is the result the next slide displays.
 -->
 
 ---
@@ -613,7 +859,7 @@ def log_loss_grad(theta, X, y):
 <!--
 This is the payoff slide of the lecture. Most students expect log loss to produce something much messier than MSE given how different the two loss formulas look, so the clean matching structure is genuinely surprising and worth pausing on.
 
-Show the derivation briefly — chain rule through the sigmoid derivative from the previous slide, then through the log terms, with several intermediate terms cancelling — but do not feel obligated to grind through every algebraic step on the board. The destination is the point, not each intermediate line. The single sentence version: $\frac{\partial}{\partial\hat p}$ of the log loss contributes a $\frac{\hat p - y}{\hat p(1-\hat p)}$ factor, the sigmoid derivative contributes $\hat p(1-\hat p)$, and those cancel exactly, leaving $\hat p - y$.
+The algebra is already on the previous slide, so do not re-derive it here. One sentence of recap is enough: $\frac{\partial}{\partial\hat p}$ of the log loss contributes a $\frac{\hat p - y}{\hat p(1-\hat p)}$ factor, the sigmoid derivative contributes $\hat p(1-\hat p)$, and those cancel exactly, leaving $\hat p - y$. Spend the time on the code and the comparison diagram instead.
 
 Then state the takeaway explicitly, and slowly, because it is the sentence students should leave with: for both models, the gradient is "how wrong the prediction was, weighted by the inputs." The *only* thing that changed between MSE and logistic regression is what "prediction" means — the raw linear output $X\theta$ versus the sigmoid-squashed output $\hat p$.
 

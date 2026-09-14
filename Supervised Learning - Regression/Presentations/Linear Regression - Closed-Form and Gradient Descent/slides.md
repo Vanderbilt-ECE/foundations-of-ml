@@ -98,7 +98,7 @@ With the bias column included: $X\in\mathbb R^{n\times(d+1)}$ and $w\in\mathbb R
     <text x="72" y="75">1</text><text x="72" y="117">1</text><text x="72" y="159">1</text><text x="72" y="201">⋮</text><text x="72" y="237">1</text>
     <text x="135" y="75">x₁₁</text><text x="135" y="117">x₂₁</text><text x="135" y="159">x₃₁</text><text x="135" y="201">⋮</text><text x="135" y="237">xₙ₁</text>
     <text x="215" y="75">⋯</text><text x="215" y="117">⋯</text><text x="215" y="159">⋯</text><text x="215" y="201">⋱</text><text x="215" y="237">⋯</text>
-    <text x="267" y="75">x₁d</text><text x="267" y="117">x₂d</text><text x="267" y="159">x₃d</text><text x="267" y="201">⋮</text><text x="267" y="237">xₙd</text>
+    <text x="267" y="75">x₁</text><text x="284" y="80" style="font-size: 14px">d</text><text x="267" y="117">x₂</text><text x="284" y="122" style="font-size: 14px">d</text><text x="267" y="159">x₃</text><text x="284" y="164" style="font-size: 14px">d</text><text x="267" y="201">⋮</text><text x="267" y="237">xₙ</text><text x="284" y="242" style="font-size: 14px">d</text>
   </g>
   <path d="M70 272 L70 300 L340 300" fill="none" stroke="#2dd4bf" stroke-width="2"/>
   <text x="350" y="306" fill="#5eead4" style="font-size: 15px">bias trick</text>
@@ -269,7 +269,9 @@ $$
 </div>
 
 <div v-click class="mt-5 text-sm text-center opacity-75">
+
 Valid whenever $X^\top X$ is invertible, i.e. whenever $X$ has full column rank.
+
 </div>
 
 <!--
