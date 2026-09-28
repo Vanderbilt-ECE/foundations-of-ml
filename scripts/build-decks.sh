@@ -9,7 +9,7 @@ slidev_bin="$root_dir/slidev_template/node_modules/.bin/slidev"
 
 slugify() { echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$//g'; }
 
-npm ci --prefix "$root_dir/slidev_template"
+(cd "$root_dir/slidev_template" && npm ci)
 
 find "$root_dir" -path "*/Presentations/*/slides.md" -print0 | while IFS= read -r -d '' slides; do
   deck_dir=$(dirname "$slides")

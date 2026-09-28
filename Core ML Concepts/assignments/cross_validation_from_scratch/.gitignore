@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+part1_split_histogram.html
+part2_stability_vs_k.html
+part2_cv_ucurve.html
+part3_leakage.html
+part4_splitters.html

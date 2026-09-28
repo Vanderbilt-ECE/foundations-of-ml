@@ -28,8 +28,8 @@ glowSeed: 461
 
 <svg role="img" aria-label="A decision tree asks feature threshold questions and ends at class leaves" viewBox="0 0 760 260" class="w-full max-w-3xl mx-auto mt-7">
   <g stroke="#94a3b8" stroke-width="3"><line x1="380" y1="70" x2="235" y2="130"/><line x1="380" y1="70" x2="525" y2="130"/><line x1="235" y1="170" x2="150" y2="225"/><line x1="235" y1="170" x2="300" y2="225"/><line x1="525" y1="170" x2="455" y2="225"/><line x1="525" y1="170" x2="610" y2="225"/></g>
-  <g><rect x="290" y="25" width="180" height="55" rx="12" fill="#0f766e88" stroke="#2dd4bf"/><text x="330" y="58" fill="white">x₁ &gt; 5?</text><rect x="160" y="125" width="150" height="50" rx="12" fill="#1e3a8a88" stroke="#60a5fa"/><text x="195" y="155" fill="white">x₂ &gt; 2?</text><rect x="450" y="125" width="150" height="50" rx="12" fill="#1e3a8a88" stroke="#60a5fa"/><text x="485" y="155" fill="white">x₃ &gt; 7?</text></g>
-  <g><rect x="95" y="215" width="110" height="38" rx="8" fill="#ea580c88"/><rect x="250" y="215" width="110" height="38" rx="8" fill="#2563eb88"/><rect x="400" y="215" width="110" height="38" rx="8" fill="#ea580c88"/><rect x="555" y="215" width="110" height="38" rx="8" fill="#2563eb88"/><text x="125" y="241" fill="white">class 0</text><text x="280" y="241" fill="white">class 1</text><text x="430" y="241" fill="white">class 0</text><text x="585" y="241" fill="white">class 1</text></g>
+  <g text-anchor="middle" dominant-baseline="middle"><rect x="290" y="25" width="180" height="55" rx="12" fill="#0f766e88" stroke="#2dd4bf"/><text x="380" y="52.5" fill="white">x₁ &gt; 5?</text><rect x="160" y="125" width="150" height="50" rx="12" fill="#1e3a8a88" stroke="#60a5fa"/><text x="235" y="150" fill="white">x₂ &gt; 2?</text><rect x="450" y="125" width="150" height="50" rx="12" fill="#1e3a8a88" stroke="#60a5fa"/><text x="525" y="150" fill="white">x₃ &gt; 7?</text></g>
+  <g text-anchor="middle" dominant-baseline="middle"><rect x="95" y="215" width="110" height="38" rx="8" fill="#ea580c88"/><rect x="250" y="215" width="110" height="38" rx="8" fill="#2563eb88"/><rect x="400" y="215" width="110" height="38" rx="8" fill="#ea580c88"/><rect x="555" y="215" width="110" height="38" rx="8" fill="#2563eb88"/><text x="150" y="234" fill="white">class 0</text><text x="305" y="234" fill="white">class 1</text><text x="455" y="234" fill="white">class 0</text><text x="610" y="234" fill="white">class 1</text></g>
 </svg>
 
 <!--
@@ -67,7 +67,7 @@ tree = DecisionTreeClassifier(
 tree.fit(X, y)
 ```
 </div>
-<svg role="img" aria-label="A small tree and matching axis aligned rectangular regions in two dimensional feature space" viewBox="0 0 500 330" class="w-full">
+<svg role="img" aria-label="A small tree and matching axis aligned rectangular regions in two dimensional feature space" viewBox="0 0 540 330" class="w-full">
   <rect x="20" y="30" width="210" height="260" fill="#0f766e22" stroke="#64748b"/><line x1="120" y1="30" x2="120" y2="290" stroke="#f8fafc" stroke-width="4"/><line x1="120" y1="155" x2="230" y2="155" stroke="#f8fafc" stroke-width="4"/><rect x="22" y="32" width="96" height="256" fill="#ea580c33"/><rect x="122" y="32" width="106" height="121" fill="#2563eb33"/><rect x="122" y="158" width="106" height="130" fill="#0f766e55"/>
   <text x="80" y="315" fill="#94a3b8">feature space</text>
   <g transform="translate(270,25)" stroke="#94a3b8" stroke-width="2"><line x1="100" y1="45" x2="45" y2="105"/><line x1="100" y1="45" x2="155" y2="105"/><line x1="155" y1="130" x2="110" y2="200"/><line x1="155" y1="130" x2="195" y2="200"/></g>
@@ -83,6 +83,7 @@ Contrast the decision geometry across algorithms covered this module: logistic r
 
 ---
 glowSeed: 463
+class: impurity-slide
 ---
 
 # How Pure Is a Node?
@@ -109,11 +110,19 @@ def entropy(p):
 assert gini([1, 0]) == entropy([1, 0]) == 0
 ```
 </div>
+<div>
+<div class="mt-4 text-sm opacity-85">
+  <strong>Definition:</strong> <em>p</em><sub>k</sub> is the fraction of examples reaching this node that belong to class <em>k</em>.
+</div>
+<div class="mt-3 text-sm border-2 border-white/10 bg-white/5 rounded-lg p-3">
+  <strong>Conceptually:</strong> low Gini means the node is nearly pure; high Gini means the node mixes classes and is harder to classify confidently.
+</div>
 <svg role="img" aria-label="Gini and entropy are zero at pure nodes and peak at an even class mixture" viewBox="0 0 470 315" class="w-full">
   <line x1="45" y1="270" x2="440" y2="270" stroke="#64748b"/><line x1="45" y1="270" x2="45" y2="25" stroke="#64748b"/>
   <path d="M45 270 Q245 35 440 270" fill="none" stroke="#2dd4bf" stroke-width="5"/><path d="M45 270 Q245 75 440 270" fill="none" stroke="#60a5fa" stroke-width="5"/>
   <line x1="245" y1="55" x2="245" y2="270" stroke="#f8fafc" stroke-dasharray="6 5"/><text x="225" y="295" fill="#94a3b8">p=.5</text><text x="310" y="65" fill="#5eead4">entropy</text><text x="310" y="105" fill="#93c5fd">Gini</text>
 </svg>
+</div>
 </div>
 
 <!--
@@ -128,9 +137,11 @@ glowSeed: 464
 
 # Information Gain Picks the Split
 
+<div class="text-lg opacity-85 mb-4">Information gain measures how much a split reduces Gini impurity—from the parent to the weighted average of its children.</div>
+
 <div class="grid grid-cols-2 gap-7 mt-2">
 <div>
-<div border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4>
+<div border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4 text-sm>
 
 $$IG=I(parent)-\left[\frac{n_L}{n}I(L)+\frac{n_R}{n}I(R)\right]$$
 
@@ -165,47 +176,37 @@ The CART algorithm (Classification and Regression Trees, used by scikit-learn) b
 
 ---
 glowSeed: 464.5
+class: worked-split
 ---
 
 # A Worked Example With an Imperfect Split
 
-<div class="grid grid-cols-2 gap-7 mt-3 items-center">
-<div>
-
-<div border="2 solid white/10" bg="white/5" rounded-lg p-4>
-Parent: 10 examples, 6 positive · 4 negative
-</div>
-
-<div class="mt-3 text-sm">
-
-$$\operatorname{Gini}(parent)=1-(0.6^2+0.4^2)=0.48$$
-
-</div>
-
-<v-clicks>
-
-- Left child (5 examples): 4 pos · 1 neg → Gini $=1-(0.8^2+0.2^2)=0.32$
-- Right child (5 examples): 2 pos · 3 neg → Gini $=1-(0.4^2+0.6^2)=0.48$
-- Weighted child impurity $=\tfrac{5}{10}(0.32)+\tfrac{5}{10}(0.48)=0.40$
-- $IG = 0.48 - 0.40 = 0.08$
-
-</v-clicks>
-
-</div>
-
-```python
-def gini_from_counts(pos, neg):
-    n = pos + neg
-    p_pos, p_neg = pos / n, neg / n
-    return 1 - (p_pos**2 + p_neg**2)
-
-parent = gini_from_counts(6, 4)          # 0.48
-left, right = gini_from_counts(4, 1), gini_from_counts(2, 3)
-child = (5/10) * left + (5/10) * right   # 0.40
-ig = parent - child                      # 0.08
-assert round(ig, 2) == 0.08
-```
-
+<div class="split-example">
+  <div class="split-parent split-card">
+    <div><strong>Parent · 10 examples</strong><div class="split-counts">6 positive · 4 negative</div></div>
+    <div class="split-equation">Gini = 1 − (0.6² + 0.4²) = <strong>0.48</strong></div>
+  </div>
+  <div class="split-branches" aria-hidden="true"><span>↙ 5 examples</span><span>5 examples ↘</span></div>
+  <div class="split-children">
+    <div v-click="1" class="split-card split-left">
+      <strong>Left child</strong>
+      <div class="split-counts">4 positive · 1 negative</div>
+      <div class="split-equation">Gini = 1 − (0.8² + 0.2²) = <strong>0.32</strong></div>
+    </div>
+    <div v-click="2" class="split-card split-right">
+      <strong>Right child</strong>
+      <div class="split-counts">2 positive · 3 negative</div>
+      <div class="split-equation">Gini = 1 − (0.4² + 0.6²) = <strong>0.48</strong></div>
+    </div>
+  </div>
+  <div v-click="3" class="split-weighted split-card">
+    <strong>Weighted child impurity</strong>
+    <span>½ × 0.32 + ½ × 0.48 = <strong>0.40</strong></span>
+  </div>
+  <div v-click="4" class="split-result split-card">
+    <div><div class="split-counts">Information gain = parent − weighted children</div><div class="split-answer">0.48 − 0.40 = <strong>0.08</strong></div></div>
+    <span>A modest reduction in impurity.</span>
+  </div>
 </div>
 
 <!--
@@ -215,7 +216,55 @@ Combine the two children with the weighted-average formula from the previous sli
 -->
 
 ---
+glowSeed: 464.75
+class: cart-slide
+---
+
+# CART: How a Decision Tree Is Fitted
+
+<div class="text-lg opacity-80 mt-2">Classification and Regression Trees · greedy, recursive binary splitting</div>
+
+<div class="grid grid-cols-2 gap-6 mt-5">
+<div class="cart-steps">
+  <div v-click="1" class="cart-step"><span class="cart-number">1</span><div><strong>Search candidate splits</strong><div>At the current node, try features and thresholds: xⱼ ≤ t versus xⱼ &gt; t.</div></div></div>
+  <div v-click="2" class="cart-step"><span class="cart-number">2</span><div><strong>Choose the largest impurity reduction</strong><div>Score valid splits using weighted child impurity. Keep the best feature and threshold.</div></div></div>
+  <div v-click="3" class="cart-step"><span class="cart-number">3</span><div><strong>Repeat in each child</strong><div>Send examples left or right, then search again using only that child’s examples.</div></div></div>
+  <div v-click="4" class="cart-step"><span class="cart-number">4</span><div><strong>Stop and store a prediction</strong><div>Stop at pure nodes, depth/sample limits, or no valid split. A class leaf predicts its majority class.</div></div></div>
+</div>
+<div>
+<div class="cart-objective">
+  <strong>At each node, choose (j, t) to maximize</strong>
+
+$$I(\text{parent})-\left[\frac{n_L}{n}I(L)+\frac{n_R}{n}I(R)\right]$$
+
+  <div class="text-sm opacity-80">The previous slide’s gain of <strong>0.08</strong> is one candidate score. CART compares it with the other valid splits.</div>
+</div>
+
+```python
+tree = DecisionTreeClassifier(
+    criterion="gini",
+    max_depth=3,
+    min_samples_leaf=5,
+    random_state=0,
+)
+tree.fit(X, y)  # learn splits from training data
+```
+
+<div class="cart-caution"><strong>Greedy:</strong> choose the best split now; do not search all possible future trees.</div>
+</div>
+</div>
+
+<!--
+CART stands for Classification and Regression Trees. Start with all training examples at the root. For a numeric feature, sort the distinct values present at this node and consider thresholds between adjacent values; each candidate creates two groups, x_j <= t and x_j > t. Reject splits that violate constraints such as min_samples_leaf, then compare the weighted impurity reduction of the remaining candidates. The worked example gave a gain of .08, but that split is selected only if it is the best valid candidate at this node, subject to any configured impurity threshold.
+
+Store the winning feature index and threshold, partition the training examples, and repeat the same procedure independently in each child. Each child can choose a different feature or reuse a feature at a different threshold. Stop when a node is pure, a depth or sample limit is reached, or no valid split remains. For classification, store class proportions in the leaf and predict the majority class. For regression with squared-error loss, use variance/MSE reduction to score splits and store the mean target in each leaf.
+
+The fit call carries out this recursive search; the depth and sample settings constrain growth. Greedy means each split is chosen for its immediate improvement, without looking ahead to the best complete tree. A zero-gain split can still permit useful splits farther down, so do not equate a zero immediate gain with proof that further growth is useless. CART also supports cost-complexity pruning after growth, covered shortly. Transition to the next slide: if we keep subdividing without useful limits, even noisy examples can end up in pure leaves, which explains why unconstrained trees overfit.
+-->
+
+---
 glowSeed: 465
+class: capacity-slide
 ---
 
 # Unconstrained Trees Overfit
@@ -236,7 +285,7 @@ for depth in [1, 3, 5, None]:
     print(depth, score)
 ```
 
-<div v-click class="mt-4 text-center text-sm opacity-80">Capacity knobs: `max_depth`, `min_samples_split`, and `min_samples_leaf`.</div>
+<div v-click class="mt-4 text-center text-sm opacity-80">Capacity knobs: <code>max_depth</code>, <code>min_samples_split</code>, and <code>min_samples_leaf</code>.</div>
 
 <!--
 A tree's depth is its capacity knob, exactly like the degree of a polynomial in linear regression or k in k-NN. At depth 1 (a "decision stump"), the model can only ask one question total, so it draws a single straight cut through feature space — this underfits whenever the true boundary needs more than one split, producing high bias. At depth 5 the tree can carve out several rectangular regions and captures the useful structure in this toy dataset. With unlimited depth (max_depth=None), CART keeps splitting until every leaf is pure or has one example, which means the tree can literally memorize the training set, including its noise — this is high variance: the model changes drastically if you retrain on a slightly different sample, and it generalizes poorly to unseen data.
@@ -246,48 +295,44 @@ Before running the cross-validation loop, ask students to predict the pattern: a
 
 ---
 glowSeed: 466
+class: pruning-slide
 ---
 
-# Pruning: Fit, Then Simplify
+# Regularizing a Decision Tree
 
-<div class="grid grid-cols-2 gap-7 mt-2 items-center">
-<div>
-<div border="2 solid violet-800" bg="violet-800/20" rounded-lg p-4>
+<div class="text-lg opacity-80 mt-2">Allow a little more training impurity to avoid fitting noise.</div>
 
-$$R_\alpha(T)=R(T)+\alpha|T|$$
-
+<div class="tree-regularization">
+  <div v-click="1" class="regularization-card">
+    <div class="text-teal-300 text-sm">1 · LIMIT GROWTH</div>
+    <h2>Stop the tree getting too complex</h2>
+    <p>Restrict which splits the tree is allowed to make.</p>
+    <div class="regularization-setting"><code>max_depth</code><span>Lower → shallower trees</span></div>
+    <div class="regularization-setting"><code>min_samples_leaf</code><span>Higher → fewer tiny leaves</span></div>
+    <div class="regularization-label">Pre-pruning: constraints during fitting</div>
+  </div>
+  <div v-click="2" class="regularization-card regularization-prune">
+    <div class="text-violet-300 text-sm">2 · PRUNE AFTER GROWING</div>
+    <h2>Remove branches that add little</h2>
+    <p>Replace a subtree with a leaf when its extra complexity is not worth the improvement in fit.</p>
+    <div class="regularization-setting"><code>ccp_alpha</code><span>Higher → stronger pruning</span></div>
+    <div class="regularization-label">Post-pruning: penalize extra leaves</div>
+  </div>
 </div>
-<v-clicks>
 
-- **Pre-pruning:** stop early with depth or sample limits
-- **Post-pruning:** grow first, remove weak subtrees later
-- `ccp_alpha` controls cost-complexity pruning
-- Choose the strength by cross-validation
-
-</v-clicks>
-<svg role="img" aria-label="Validation accuracy peaks at an intermediate pruning strength" viewBox="0 0 430 170" class="w-full max-w-sm mx-auto mt-1"><line x1="35" y1="140" x2="410" y2="140" stroke="#64748b"/><path d="M45 115 Q190 10 400 120" fill="none" stroke="#2dd4bf" stroke-width="5"/><circle cx="190" cy="47" r="7" fill="#f8fafc"/><text x="205" y="42" fill="#f8fafc">best α</text></svg>
-</div>
-
-```python
-full = DecisionTreeClassifier(random_state=0)
-path = full.cost_complexity_pruning_path(X, y)
-
-scores = []
-for alpha in path.ccp_alphas:
-    model = DecisionTreeClassifier(
-        random_state=0, ccp_alpha=alpha)
-    scores.append(cross_val_score(
-        model, X, y, cv=5).mean())
-
-best_alpha = path.ccp_alphas[np.argmax(scores)]
-print(best_alpha)
-```
+<div v-click="3" class="regularization-objective">
+  <strong>Pruning minimizes:</strong> weighted leaf impurity + α × number of leaves
+  <div>Choose strength by cross-validation: too little overfits; too much underfits.</div>
 </div>
 
 <!--
-Cost-complexity pruning grows a full, likely overfit tree first and then simplifies it, which is the opposite order from pre-pruning. R(T) is the tree's total training error (e.g., misclassification rate summed over leaves), |T| is the number of leaves (a proxy for model complexity), and alpha is a penalty strength that trades off fit against size — a direct tree analogue of the regularized objective J(w) + lambda·R(w) from linear and logistic regression, where leaves play the role that the weight-vector norm plays there. As alpha increases, the penalty for extra leaves grows, so the optimal pruned subtree gets smaller; scikit-learn's `cost_complexity_pruning_path` returns the sequence of alphas at which the optimal subtree changes, letting you enumerate candidate pruned trees efficiently instead of retraining from scratch at arbitrary alpha values.
+In scikit-learn's cost-complexity pruning formulation, R(T) is total sample-weighted leaf impurity, not a separate misclassification-error measure. For the unweighted training examples used here, each leaf's weight is n_leaf/N, where N counts all training examples. With sample weights, replace counts by weight sums. I(leaf) uses the fitted criterion, Gini in this example. A pure-leaf tree has R(T)=0 even if it overfits.
 
-Pre-pruning (stopping early via max_depth, min_samples_split, min_samples_leaf) and post-pruning (growing fully, then pruning back with ccp_alpha) are two different strategies for controlling the same bias-variance tradeoff; post-pruning is generally considered more reliable because it evaluates the full tree structure before deciding what to remove, rather than committing to stop based on greedy, local information. Either way, choose the pruning strength alpha by cross-validation and expect the same U-shaped validation curve seen everywhere else in this course: too little pruning overfits, too much underfits, and the best alpha sits in between.
+Connect this directly to growth: splitting a node containing n examples with local information gain IG reduces whole-tree R(T) by (n/N)IG. The complexity term is used in post-pruning, not added to each greedy split score during growth. For a fixed alpha, seek the pruned subtree minimizing R_alpha(T)=R(T)+alpha times the number of leaves. Weakest-link pruning generates a nested sequence of subtrees; it removes branches rather than searching for alternative feature thresholds at retained nodes.
+
+Teach this as two functional approaches to regularization. First, constrain the model: max_depth limits the number of successive questions and min_samples_leaf prevents splitting off tiny groups. Second, penalize complexity: grow a tree, then remove branches whose impurity reduction does not justify their extra leaves. These approaches can be combined. The shared aim is to trade some training fit for better generalization; validation performance determines how much regularization is useful.
+
+Keep the two optimization decisions distinct: minimize penalized training impurity to select a subtree for a fixed alpha, then use cross-validation performance to choose alpha. In code, DecisionTreeClassifier(ccp_alpha=alpha).fit(X, y) grows and prunes the tree; cost_complexity_pruning_path exposes candidate alphas and corresponding leaf impurities. Pre-pruning settings such as max_depth and min_samples_leaf constrain growth before this pruning stage.
 -->
 
 ---

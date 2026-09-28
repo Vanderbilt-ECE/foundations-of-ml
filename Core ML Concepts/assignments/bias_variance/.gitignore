@@ -1,0 +1,4 @@
+.venv/
+__pycache__/
+bias_variance.html
+bias_variance_fits.html

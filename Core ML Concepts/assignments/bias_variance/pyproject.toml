@@ -1,0 +1,10 @@
+[project]
+name = "bias-variance"
+version = "0.1.0"
+description = "Bias-variance tradeoff demo: sweep polynomial degrees against a sine truth"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "scikit-learn",
+    "plotly",
+]

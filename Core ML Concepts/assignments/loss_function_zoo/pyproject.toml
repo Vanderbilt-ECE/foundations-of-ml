@@ -1,0 +1,10 @@
+[project]
+name = "loss-function-zoo"
+version = "0.1.0"
+description = "Reference solution: regression and classification loss functions from scratch"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "scikit-learn",
+    "plotly",
+]

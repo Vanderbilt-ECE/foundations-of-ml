@@ -1,0 +1,19 @@
+[project]
+name = "regularization-demo"
+version = "0.1.0"
+description = "A minimal Plotly comparison of linear, ridge, and lasso regression."
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "plotly>=6.0",
+    "scikit-learn>=1.5",
+]
+
+[tool.uv]
+package = false
+
+[tool.pyright]
+# Tell Pyright (including the Neovim language server) to use UV's local environment.
+venvPath = "."
+venv = ".venv"
