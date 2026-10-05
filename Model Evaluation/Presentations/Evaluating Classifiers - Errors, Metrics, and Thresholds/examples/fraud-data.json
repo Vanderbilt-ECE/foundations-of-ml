@@ -1,0 +1,27 @@
+[
+  {
+    "score": 0.9,
+    "positive": 50,
+    "negative": 10
+  },
+  {
+    "score": 0.7,
+    "positive": 20,
+    "negative": 20
+  },
+  {
+    "score": 0.5,
+    "positive": 10,
+    "negative": 60
+  },
+  {
+    "score": 0.3,
+    "positive": 15,
+    "negative": 110
+  },
+  {
+    "score": 0.1,
+    "positive": 5,
+    "negative": 700
+  }
+]

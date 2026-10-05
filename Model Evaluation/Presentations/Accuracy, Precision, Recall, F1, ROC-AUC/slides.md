@@ -240,7 +240,7 @@ $$
 <!--
 F1 is the harmonic mean of precision (P) and recall (R), not their average. The formula 2PR/(P+R) comes directly from the general harmonic-mean formula for two numbers, 2/(1/P + 1/R); multiplying numerator and denominator by PR gives 2PR/(P+R). The harmonic mean is always less than or equal to the arithmetic mean, and it is pulled hard toward whichever of the two numbers is smaller. Verify with the extreme case on the slide: precision 1.0 and recall 0.01 average arithmetically to 0.505, which sounds mediocre-but-usable — but the harmonic mean is 2(1.0)(0.01)/(1.0+0.01) ≈ 0.0198, correctly signaling that a model catching 1% of positives is nearly useless no matter how precise it is when it does fire.
 
-That "punish the weak link" behavior is exactly why F1 is preferred over an arithmetic average when you want a single number that cannot be gamed by maximizing one term while ignoring the other — a classifier cannot get a good F1 by being perfectly precise on a handful of easy cases while missing almost everything else, the way it could with an averaged score. Fβ generalizes this: β controls how many times more important recall is than precision. β=1 is the balanced case (F1). β=2 weights recall twice as heavily, appropriate for disease screening where missed cases are worse than false alarms. β=0.5 weights precision twice as heavily, appropriate for spam filtering. On our worked example (P=0.471, R=0.800), F1 = 0.593; you could recompute F2 as an exercise to see it shift toward the higher recall value. Next we move from single-threshold metrics to a curve that sweeps every possible threshold at once.
+That "punish the weak link" behavior is why F1 is useful when both precision and recall must be reasonably high. Fβ changes their relative emphasis. β=1 gives F1. Values above 1 emphasize recall, and values below 1 emphasize precision. Because β enters the formula as β², F2 places four times as much coefficient weight on recall as on precision. On our worked example (P=0.471, R=0.800), F1 = 0.593; recomputing F2 shows the result shift toward recall. Next we move from single-threshold metrics to a curve that sweeps every possible threshold.
 -->
 
 ---
@@ -323,7 +323,7 @@ glowSeed: 517
 <div v-click class="mt-4" style="font-size: .9em" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
 
 $$
-\mathrm{AUC}=P\big(s(x^+)>s(x^-)\big)
+\mathrm{AUC}=P(s^+>s^-)+\tfrac12P(s^+=s^-)
 $$
 
 </div>
@@ -336,7 +336,7 @@ AUC = 0.5 is random ranking. AUC = 1.0 is a perfect ranking. AUC = 0.0 means the
 </div>
 
 <!--
-AUC, area under the ROC curve, compresses the entire curve from the previous slide into a single number between 0 and 1 by literally computing the area beneath it. That number has an equivalent and more intuitive interpretation, given by the formula: pick one positive example x-plus and one negative example x-minus at random, and let s(·) be the model's score function; AUC is the probability that the model scores the positive higher than the negative, P(s(x+) > s(x-)). This is called the concordance interpretation, and it is exactly what scikit-learn's roc_auc_score computes under the hood via the Mann-Whitney U statistic — no thresholding required.
+AUC, area under the ROC curve, compresses the entire curve into one number. Pick one positive and one negative example at random. AUC is the probability that the positive receives a higher score, plus half the probability of a tie. The half-credit term matters for models that emit a small set of discrete scores. This concordance interpretation is equivalent to the area interpretation and requires no classification threshold.
 
 Because AUC only cares about relative ranking, it is threshold-independent: it does not change if you rescale or monotonically transform the scores. That is also its biggest limitation — a model can have excellent AUC while producing scores that are badly miscalibrated as probabilities (e.g., its "0.9" outputs are not right 90% of the time), and AUC alone tells you nothing about which threshold to deploy at; you still need to pick one using precision, recall, or a cost-weighted criterion from the raw ROC curve or a validation set. AUC = 0.5 means the model has learned nothing about which class is which — it is equivalent to random guessing, not "50% accurate." The next slide shows a case where AUC is much more misleading than it first appears.
 -->
@@ -345,14 +345,14 @@ Because AUC only cares about relative ranking, it is threshold-independent: it d
 glowSeed: 518
 ---
 
-# ROC-AUC Can Look Great and Still Be Useless
+# ROC Coordinates Can Hide Alert Burden
 
 <div class="grid grid-cols-2 gap-8 items-start">
 <div>
 <div class="space-y-3 mt-4">
 <div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-teal-300">Setup</span>
-<span class="text-sm opacity-85"> — 10 positives, 9,990 negatives; flag the top 100 scores, catch 8 true positives.</span>
+<span class="font-bold text-teal-300">Operating point</span>
+<span class="text-sm opacity-85"> — 10 positives, 9,990 negatives; flag 100 cases and catch 8 positives.</span>
 </div>
 <div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
 <span class="font-bold text-blue-300">FPR barely moves</span>
@@ -366,10 +366,10 @@ glowSeed: 518
 </div>
 <div>
 <div v-click class="mt-4 text-sm" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
-ROC-AUC ≈ 0.77 &nbsp;—&nbsp; looks solid
+ROC point: TPR = 0.80, FPR ≈ 0.009
 </div>
 <div v-click class="mt-3 text-sm" border="2 solid red-800" bg="red-800/20" rounded-lg px-4 py-3>
-Precision-Recall AUC ≈ 0.01 &nbsp;—&nbsp; reveals it is nearly useless
+Alert quality: precision = 0.08
 </div>
 <div v-click class="mt-4 text-xs opacity-75">
 FPR's denominator is <em>every negative</em> (9,990). With a huge negative class, hundreds of false positives barely register as a rate — but they overwhelm the flagged set. Precision-Recall curves use TP+FP as a denominator and expose this directly.
@@ -378,9 +378,73 @@ FPR's denominator is <em>every negative</em> (9,990). With a huge negative class
 </div>
 
 <!--
-This is the key misconception the deck must correct: ROC-AUC can be seriously misleading under heavy class imbalance, and the reason is purely arithmetic, visible in the false-positive-rate formula FP/(FP+TN). When TN is huge — 9,990 negatives in this example — the denominator is dominated by TN, so even a large number of false positives barely moves FPR. Flag the 100 highest-scoring cases, catch 8 of the 10 true positives (recall 0.8, which sounds fine), and rack up 92 false positives; FPR is only 92/9990 ≈ 0.009. A simulated version of this scenario scores about 0.77 on ROC-AUC — a number most people would call "pretty good."
+This operating point shows why ROC coordinates can look reassuring under heavy class imbalance. When TN is huge, even many false positives barely move FP/(FP+TN). Here the model catches 8 of 10 positives, so TPR is 0.80, and produces 92 false positives, so FPR is only about 0.009.
 
-But look at precision, whose denominator is TP+FP, the actual flagged set, not the whole negative population: only 8 of the 100 flagged cases are real positives, precision = 0.08. Ninety-two percent of every alert this model raises is a false alarm. The Precision-Recall curve and its area (average precision), which plot precision against recall instead of FPR against TPR, expose this directly — the PR-AUC for this same scenario is roughly 0.01, barely above the random baseline of 10/10000 = 0.001. The rule to take away: whenever positives are rare, prefer precision-recall curves over ROC curves for judging a model, because ROC-AUC's FPR term is numerically insensitive to a flood of false positives when the negative class is enormous. This closes out the metric toolkit — the final two slides turn it into a decision procedure.
+Precision uses the flagged set as its denominator: only 8 of 100 alerts are real. A precision-recall curve exposes this burden across thresholds. Its no-skill precision baseline equals prevalence, 10/10,000 = 0.001 here. One operating point cannot determine ROC-AUC or the area under a precision-recall curve; both require the complete score ranking. Also distinguish average precision, the summary returned by scikit-learn's average_precision_score, from trapezoidal PR-AUC because the two calculations can differ.
+-->
+
+---
+glowSeed: 5181
+---
+
+# Calibration: Do the Probabilities Mean What They Say?
+
+<div class="grid grid-cols-2 gap-8 items-start">
+<div>
+<div class="space-y-3 mt-4">
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-teal-300">Discrimination</span><span class="text-sm opacity-85"> — Can the model rank positives above negatives? ROC-AUC and average precision address this.</span></div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-blue-300">Calibration</span><span class="text-sm opacity-85"> — Among cases scored near 0.8, does the event occur about 80% of the time?</span></div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-amber-300">Check both</span><span class="text-sm opacity-85"> — A model can rank perfectly and still report misleading probabilities.</span></div>
+</div>
+</div>
+<div>
+<div v-click class="mt-4" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
+<div class="font-bold text-teal-300 mb-2">Reliability diagram</div>
+<div class="text-sm opacity-90">Group predictions by score and compare mean predicted probability with observed frequency.</div>
+</div>
+<div v-click class="mt-4" border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3>
+<div class="font-bold text-blue-300 mb-2">Proper scoring rules</div>
+<div class="text-sm opacity-90">Log loss and Brier score reward useful probability estimates, not only correct rankings.</div>
+</div>
+</div>
+</div>
+
+<!--
+AUC measures ranking, not whether the numeric probabilities are trustworthy. A model can preserve the same ranking after a monotone transformation and retain the same AUC even though its probabilities become badly distorted. Calibration asks whether predicted probabilities match observed frequencies.
+
+Use a reliability diagram to compare predicted and observed rates across probability bins. Log loss penalizes confident wrong predictions strongly. Brier score is the mean squared error of predicted probabilities for a binary outcome. If calibration is needed, fit the calibration method using training or validation data inside the model-selection process, never on the final test set.
+-->
+
+---
+glowSeed: 5182
+---
+
+# Choose the Threshold on Validation Data
+
+<div class="grid grid-cols-2 gap-8 items-start">
+<div>
+<div class="space-y-3 mt-4">
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-teal-300">Define the objective</span><span class="text-sm opacity-85"> — Specify error costs, capacity limits, or a required recall before searching thresholds.</span></div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-blue-300">Tune on validation data</span><span class="text-sm opacity-85"> — Choose the threshold without looking at final test performance.</span></div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-amber-300">Evaluate once</span><span class="text-sm opacity-85"> — Lock the model and threshold, then report final test metrics.</span></div>
+</div>
+</div>
+<div>
+<div v-click class="mt-5" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
+
+$$
+\mathrm{Expected\ cost}(t)=C_{FP}\,FP(t)+C_{FN}\,FN(t)
+$$
+
+</div>
+<div v-click class="mt-4 text-sm opacity-85">Precision can change when deployment prevalence changes, even if sensitivity and specificity stay fixed. Recheck the operating point when the population changes.</div>
+</div>
+</div>
+
+<!--
+Choosing a threshold is part of model selection. First define what the operating point must accomplish: minimize an explicit cost, meet a minimum recall, keep false alerts below reviewer capacity, or satisfy another deployment constraint. Search thresholds using validation predictions or out-of-fold training predictions. Then lock the threshold before touching the test set.
+
+The default threshold of 0.5 has no universal operational meaning. Precision and negative predictive value also depend on prevalence, so an operating point chosen in one population may behave differently after deployment. Re-evaluate it when the base rate or error costs change.
 -->
 
 ---
@@ -403,14 +467,14 @@ glowSeed: 519
 <div class="text-sm leading-relaxed opacity-90">False negatives are costly.</div>
 </div>
 <div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg p-4>
-<div class="font-bold text-violet-300 mb-2">F1 / PR-AUC / ROC-AUC</div>
-<div class="text-sm leading-relaxed opacity-90">Balance P–R, or compare ranking across thresholds (prefer PR-AUC under heavy imbalance).</div>
+<div class="font-bold text-violet-300 mb-2">F1 / average precision / ROC-AUC</div>
+<div class="text-sm leading-relaxed opacity-90">Balance precision and recall, or compare ranking across thresholds. Prefer a precision-recall summary when positives are rare.</div>
 </div>
 </div>
 
 
 <!--
-Metric choice is a modeling decision tied to the real application, not a default you leave at "accuracy." Ask what a false positive costs versus what a false negative costs, and let that answer drive the metric: use accuracy only when classes are roughly balanced and the two error types are roughly equally bad; use precision when false alarms are expensive relative to misses (spam filtering, flagging a legitimate transaction as fraud); use recall when misses are expensive relative to false alarms (cancer screening, security threat detection); use F1 when you need one number that forces both precision and recall to be reasonably good; and use ROC-AUC or, better, PR-AUC when you need to compare models across every possible threshold rather than commit to one, remembering PR-AUC is the safer choice once positives are rare, as the previous slide demonstrated.
+Metric choice is a modeling decision tied to the real application. Use accuracy when classes are reasonably balanced and the two error types have similar costs; precision when false alarms are costly; recall when misses are costly; and F1 when both precision and recall must be reasonably high. Use ROC-AUC to summarize ranking across false-positive and true-positive rates. Under heavy imbalance, inspect the precision-recall curve and report a clearly named summary such as average precision.
 
 None of these choices are mutually exclusive in practice — a deployed system typically reports several of them together (a confusion matrix, precision, recall, F1, and AUC) so that a reviewer can see the full picture rather than a single, potentially misleading summary. The next slide packages this into a reusable toolbox and hands off to the deck on reading a confusion matrix in full detail, including the multiclass case.
 -->
@@ -421,7 +485,7 @@ glowSeed: 520
 
 # A Metric Toolbox
 
-<div class="mt-8"><div class="grid grid-cols-3 gap-4 mt-6">
+<div class="mt-8"><div class="grid grid-cols-4 gap-4 mt-6">
 <div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4>
 <div class="font-bold text-teal-300 mb-2">Counts</div>
 <div class="text-sm leading-relaxed opacity-90">Start with TP, TN, FP, FN.</div>
@@ -433,6 +497,10 @@ glowSeed: 520
 <div v-click border="2 solid amber-800" bg="amber-800/20" rounded-lg p-4>
 <div class="font-bold text-amber-300 mb-2">Thresholds</div>
 <div class="text-sm leading-relaxed opacity-90">Evaluate the full tradeoff.</div>
+</div>
+<div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg p-4>
+<div class="font-bold text-violet-300 mb-2">Probabilities</div>
+<div class="text-sm leading-relaxed opacity-90">Check calibration when decisions use predicted risk.</div>
 </div>
 </div></div>
 

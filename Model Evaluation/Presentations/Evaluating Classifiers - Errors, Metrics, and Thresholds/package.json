@@ -1,13 +1,10 @@
 {
-  "name": "statistical-significance-in-model-comparison",
+  "name": "evaluating-classifiers",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "PATH=/opt/homebrew/opt/node@20/bin:$PATH ../../../slidev_template/node_modules/.bin/slidev --open",
+    "dev": "PATH=/opt/homebrew/opt/node@20/bin:$PATH ../../../slidev_template/node_modules/.bin/slidev",
     "build": "PATH=/opt/homebrew/opt/node@20/bin:$PATH ../../../slidev_template/node_modules/.bin/slidev build",
     "export": "PATH=/opt/homebrew/opt/node@20/bin:$PATH ../../../slidev_template/node_modules/.bin/slidev export"
-  },
-  "dependencies": {
-    "plotly.js-dist-min": "^4.1.1"
   }
 }

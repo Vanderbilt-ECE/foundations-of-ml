@@ -33,7 +33,7 @@ glowSeed: 580
 </div>
 
 <!--
-Every metric and every significance test built in this module — accuracy, precision, recall, F1, ROC-AUC, the confusion matrix, McNemar's test, the paired t-test — assumes the underlying evaluation itself is sound: that the test score actually reflects how the model will perform on new, unseen data. This closing deck is about the two most common ways that assumption silently breaks, producing numbers that look excellent right up until deployment.
+Every metric and uncertainty procedure built in this module assumes the underlying evaluation is sound: the test data must represent the intended deployment and remain isolated from model development. This closing deck examines common ways that assumption breaks and produces numbers that look excellent until deployment.
 
 Roadmap: data leakage — information the model should not have had access to sneaking into training — with an end-to-end demonstration showing exactly how much a leaky evaluation can lie to you, then class imbalance — how a skewed label distribution distorts both training and evaluation even when the pipeline is otherwise correct. We close with a pre-deployment checklist that ties this back to every prior deck in the module: the setup has to be right before any metric or significance test means anything at all.
 -->
@@ -139,6 +139,7 @@ glowSeed: 583
 </div>
 
 ```python {6-8,9}
+import numpy as np
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -155,6 +156,25 @@ assert np.isfinite(scores).all()
 make_pipeline chains StandardScaler and LogisticRegression into a single estimator object that exposes one fit/predict interface but internally keeps the boundary between them strict. cross_val_score(model, X, y, cv=5) then does the correct thing automatically: for each of the 5 folds, it takes the training portion of that fold, calls the whole pipeline's fit on it — which fits StandardScaler's mean and standard deviation using only those training rows, then fits LogisticRegression on the scaled training rows — and only then calls the pipeline's predict on the held-out portion of that fold, which reuses the already-fitted scaler's parameters without recomputing them from the held-out data.
 
 The assert on the last line is a habit worth adopting generally, not just here: after any cross-validation run, check that every returned score is finite (np.isfinite) before trusting or reporting it, since a NaN or infinite score usually signals a numerical problem (a fold with a degenerate class distribution, non-converged optimization) that would otherwise silently corrupt a mean score. Default to wrapping preprocessing and modeling in a Pipeline whenever any step "learns" something from the data — scaling, imputation, feature selection, dimensionality reduction — because manual, outside-the-pipeline preprocessing is where leakage most often hides. Next we make the cost of skipping this discipline concrete with real numbers.
+-->
+
+---
+glowSeed: 5831
+---
+
+# The Split Must Match Deployment
+
+<div class="grid grid-cols-2 gap-4 mt-6">
+<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4><div class="font-bold text-teal-300 mb-2">Stratified split</div><div class="text-sm leading-relaxed opacity-90">Preserve class proportions when independent examples are randomly sampled.</div></div>
+<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4><div class="font-bold text-blue-300 mb-2">Group-aware split</div><div class="text-sm leading-relaxed opacity-90">Keep every row from the same patient, user, household, or device in one partition.</div></div>
+<div v-click border="2 solid amber-800" bg="amber-800/20" rounded-lg p-4><div class="font-bold text-amber-300 mb-2">Chronological split</div><div class="text-sm leading-relaxed opacity-90">Train on the past and evaluate on later periods when the model will predict the future.</div></div>
+<div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg p-4><div class="font-bold text-violet-300 mb-2">Nested cross-validation</div><div class="text-sm leading-relaxed opacity-90">Use inner folds for model selection and outer folds for an unbiased performance estimate.</div></div>
+</div>
+
+<!--
+A pipeline protects learned transformations, but it cannot repair a split that lets related observations appear on both sides. Use stratification when observations are independent and class proportions need protection. Use group-aware splitting when multiple rows belong to the same entity. For temporal deployment, train on earlier observations and evaluate on later ones so the evaluation preserves the direction of time.
+
+Nested cross-validation separates two jobs. The inner loop selects hyperparameters, features, thresholds, or candidate models. The outer loop evaluates the complete selection procedure on data the inner loop never saw. Choosing the best cross-validation result and reporting that same result as final performance introduces selection bias.
 -->
 
 ---
@@ -299,7 +319,7 @@ $$
 <!--
 The Accuracy deck opened with the accuracy paradox — a trivial "always predict majority" classifier hitting 99% accuracy on a 990/10 split — and this slide connects that same imbalance directly to the training objective itself, not just the reporting metric, which is a distinct and equally important failure mode. R-hat(θ) is the empirical risk: the average, over all n training examples, of the loss ℓ between the model's prediction f_θ(x_i) and the true label y_i — this is literally what gradient descent is minimizing during training, whether ℓ is cross-entropy, squared error, or another loss.
 
-Because this is an unweighted average over all n examples, and 990 of the 1000 examples belong to the majority class, the majority class's errors dominate the sum by sheer count — a mistake on a minority example contributes exactly the same amount to the sum as a mistake on a majority example, but there are 99 times fewer minority examples to make mistakes on, so minority-class errors are a small fraction of the total loss even when the model gets every single minority example wrong. The optimizer, which only "sees" this one aggregate number, therefore has very little gradient pressure pushing it to get minority examples right — it can achieve a near-minimal average loss by nailing the majority class and effectively ignoring the minority class, which is precisely the training-time mirror of the accuracy paradox at evaluation time. Both problems share the same root cause (an unweighted average over an imbalanced population) and, correspondingly, many of the same fixes, covered next.
+Because 990 of the 1,000 examples belong to the majority class, that class contributes many more terms to an unweighted empirical risk. This often biases learning toward majority performance, although the effect also depends on the loss values, features, model, regularization, and optimization dynamics. Class count alone does not determine the gradient from an individual example. The practical lesson is to inspect per-class behavior and compare mitigation methods rather than assume imbalance produces one fixed outcome.
 -->
 
 ---
@@ -329,9 +349,33 @@ glowSeed: 587
 
 
 <!--
-No mitigation here is free, and each one should be chosen deliberately against the real cost of the errors it changes, not applied by default. Class weighting multiplies each example's contribution to the loss by a factor inversely related to its class frequency (scikit-learn's class_weight="balanced" does this automatically), which directly counters the empirical-risk imbalance from the previous slide — but it can make the model more sensitive to noisy or mislabeled minority examples, since those now carry outsized weight too. Resampling — oversampling the minority class (duplicating examples, or synthetically generating new ones with a technique like SMOTE) or undersampling the majority class — changes what the model sees during training; oversampling risks overfitting to duplicated minority examples, and undersampling throws away majority-class information that might otherwise have been useful.
+No mitigation here is free, and each one should be chosen against the real cost of the errors it changes. Class weighting multiplies each example's contribution to the loss by a factor related to class frequency, which can make the model more sensitive to noisy minority labels. Resampling changes what the model sees during training. It must occur separately inside each training fold; applying oversampling or SMOTE before cross-validation lets validation information influence the sampled training data. Oversampling can overfit minority examples, and undersampling discards majority-class information.
 
 Threshold tuning does not touch training at all — it moves the decision boundary at inference time, trading precision for recall or vice versa along the ROC or precision-recall curve built in the earlier metrics deck; this is often the lowest-risk intervention because it does not change the underlying model, just how its output probabilities get converted to a hard decision. Metrics discipline is the one item on this list that costs nothing and should always be applied: for any imbalanced problem, report per-class precision, recall, and F1 (or the macro/weighted breakdown from the Confusion Matrices deck) rather than a single accuracy or micro-averaged number, because — as shown twice already in this module — those aggregates can look excellent while the minority class fails almost completely. Align whichever mitigation you choose with the real, application-specific cost of a minority-class miss versus a majority-class false alarm.
+-->
+
+---
+glowSeed: 5871
+---
+
+# Performance Can Vary Across Groups and Time
+
+<div class="grid grid-cols-2 gap-8 items-start">
+<div><div class="space-y-3 mt-4">
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-teal-300">Subgroups</span><span class="text-sm opacity-85"> — Overall recall can hide poor recall for a site, device type, demographic group, or rare condition.</span></div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-blue-300">Distribution shift</span><span class="text-sm opacity-85"> — Changes in prevalence, measurement, or behavior can move deployment performance away from the test estimate.</span></div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-amber-300">Small samples</span><span class="text-sm opacity-85"> — Report group sizes and uncertainty; noisy subgroup estimates can look extreme by chance.</span></div>
+</div></div>
+<div>
+<div v-click class="mt-5" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3><div class="font-bold text-teal-300 mb-2">Before deployment</div><div class="text-sm opacity-90">Evaluate relevant groups and time periods using the same metrics and operating threshold.</div></div>
+<div v-click class="mt-4" border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3><div class="font-bold text-blue-300 mb-2">After deployment</div><div class="text-sm opacity-90">Monitor feature distributions, prevalence, calibration, alert volume, and delayed outcomes.</div></div>
+</div>
+</div>
+
+<!--
+An aggregate metric can hide subgroup failure just as it can hide minority-class failure. Choose subgroup analyses from the deployment context rather than searching many groups for the most dramatic result. Report support and an uncertainty interval with each estimate because a rate based on a handful of examples is unstable.
+
+The test set estimates performance for the population it represents. If prevalence, data collection, user behavior, or measurement systems change, calibration and threshold-dependent metrics can change too. Deployment monitoring should include input distributions and operational outputs, then incorporate ground-truth outcomes when those labels arrive.
 -->
 
 ---
@@ -357,6 +401,10 @@ glowSeed: 588
 <div class="font-bold text-violet-300 mb-2">Test discipline</div>
 <div class="text-sm leading-relaxed opacity-90">Was the test set touched exactly once, after every modeling decision was already fixed?</div>
 </div>
+</div>
+
+<div v-click class="mt-4 text-sm" border="2 solid white/10" bg="white/5" rounded-lg px-4 py-3>
+Does the split preserve groups and time, and were performance, calibration, and alert volume checked across relevant deployment segments?
 </div>
 
 

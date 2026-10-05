@@ -1,0 +1,19 @@
+[project]
+name = "classifier-explorer"
+version = "0.1.0"
+description = "An interactive browser tool for exploring thresholds, costs, ROC and PR curves on credit-card fraud data."
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.0",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+]
+
+[tool.uv]
+package = false
+
+[tool.pyright]
+# Tell Pyright (including the Neovim language server) to use UV's local environment.
+venvPath = "."
+venv = ".venv"

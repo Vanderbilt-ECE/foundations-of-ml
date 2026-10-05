@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classifier Explorer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M2 14 C3 4 6 2 14 2' fill='none' stroke='%232a78d6' stroke-width='2'/></svg>">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+<main class="page">
+  <header class="page-header">
+    <h1>Classifier Explorer</h1>
+    <p class="lede">
+      Polynomial logistic regression on credit-card fraud. Fit a model, then move the threshold
+      and change the costs to see how every error trade-off responds.
+    </p>
+  </header>
+
+  <!-- 1. Model -->
+  <section class="card controls" aria-labelledby="model-heading">
+    <h2 id="model-heading">1 · Model</h2>
+    <div class="control-row">
+      <label>Polynomial degree
+        <select id="degree"></select>
+      </label>
+      <label>Features expanded (top-k by |corr| with fraud)
+        <input id="k" type="number" step="1">
+      </label>
+      <div class="readout" id="expanded-readout"></div>
+      <div class="buttons">
+        <button id="fit-btn" class="primary">Fit model</button>
+        <button id="sweep-btn">Sweep all degrees</button>
+      </div>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite">Loading data…</p>
+    <p class="fine" id="data-summary"></p>
+  </section>
+
+  <!-- 2. Threshold and costs -->
+  <section class="card threshold" aria-labelledby="threshold-heading">
+    <h2 id="threshold-heading">2 · Threshold and costs</h2>
+    <div class="threshold-row">
+      <div class="slider-block">
+        <label for="threshold" class="slider-label">
+          Flag as fraud when P(fraud) ≥ <strong id="threshold-value">0.500</strong>
+        </label>
+        <input id="threshold" type="range">
+        <div class="slider-ends"><span>more sensitive (catch more fraud)</span><span>more conservative (fewer false alarms)</span></div>
+        <div class="scale-toggle" role="radiogroup" aria-label="Slider scale">
+          <label><input type="radio" name="scale" value="linear" checked> Linear scale</label>
+          <label><input type="radio" name="scale" value="log"> Log scale (10⁻⁶ – 1)</label>
+        </div>
+      </div>
+
+      <div class="cost-block">
+        <p class="cost-title">Cost of each outcome <span class="fine">(negative = benefit)</span></p>
+        <div class="matrix cost-matrix">
+          <div></div>
+          <div class="axis-label">Predicted legit</div>
+          <div class="axis-label">Predicted fraud</div>
+          <div class="axis-label row">Actual legit</div>
+          <label class="cost-cell">TN <input id="cost-tn" type="number" step="any" value="0"></label>
+          <label class="cost-cell">FP <input id="cost-fp" type="number" step="any" value="5"></label>
+          <div class="axis-label row">Actual fraud</div>
+          <label class="cost-cell">FN <input id="cost-fn" type="number" step="any" value="100"></label>
+          <label class="cost-cell">TP <input id="cost-tp" type="number" step="any" value="5"></label>
+        </div>
+      </div>
+
+      <div class="min-block">
+        <p class="cost-title">Minimum-cost threshold</p>
+        <p class="big" id="min-threshold">–</p>
+        <p class="fine" id="min-cost-detail"></p>
+        <button id="jump-btn">Jump to minimum</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Results -->
+  <section class="grid">
+    <article class="card">
+      <h2>Confusion matrix <span class="fine">(test set)</span></h2>
+      <div class="cm-wrap">
+        <div class="matrix cm" id="cm">
+          <div></div>
+          <div class="axis-label">Predicted legit</div>
+          <div class="axis-label">Predicted fraud</div>
+          <div class="axis-label row">Actual legit</div>
+          <div class="cm-cell" id="cm-tn"></div>
+          <div class="cm-cell" id="cm-fp"></div>
+          <div class="axis-label row">Actual fraud</div>
+          <div class="cm-cell" id="cm-fn"></div>
+          <div class="cm-cell" id="cm-tp"></div>
+        </div>
+        <dl class="metrics" id="metrics"></dl>
+      </div>
+      <p class="fine">Cell shade = share of its row (actual class). Percentages are row percentages.</p>
+    </article>
+
+    <article class="card">
+      <h2>Total cost vs threshold</h2>
+      <div class="chart" id="cost-chart"></div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <h2 id="roc-title">ROC curve</h2>
+        <label class="inline"><input type="checkbox" id="roc-log"> Log FPR axis</label>
+      </div>
+      <div class="chart" id="roc-chart"></div>
+    </article>
+
+    <article class="card">
+      <h2 id="pr-title">Precision–recall curve</h2>
+      <div class="chart" id="pr-chart"></div>
+    </article>
+
+    <article class="card wide">
+      <h2>Model complexity <span class="fine" id="complexity-k"></span></h2>
+      <p class="fine">
+        Each fitted degree adds a point. Train metrics are reweighted to the natural fraud rate so they
+        are comparable with test. A widening gap between train and test means the model is overfitting.
+      </p>
+      <div class="two-up">
+        <div class="chart" id="ap-chart"></div>
+        <div class="chart" id="logloss-chart"></div>
+      </div>
+    </article>
+  </section>
+
+  <p class="note">
+    <strong>Honesty note:</strong> the threshold here is tuned on the same test set it is scored on. That is
+    fine for exploring, but it leaks: in a real project you would pick the threshold on a validation split
+    and report performance on a test set you never looked at.
+  </p>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

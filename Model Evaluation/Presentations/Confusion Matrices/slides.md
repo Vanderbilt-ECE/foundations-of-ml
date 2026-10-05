@@ -87,14 +87,14 @@ glowSeed: 532
 <div class="grid grid-cols-2 gap-6 items-start">
 <div>
 <div class="text-sm font-bold text-teal-300 mb-2 text-center">Model A — false-positive heavy</div>
-<div role="img" aria-label="Model A confusion matrix: TN 750, FP 150, FN 30, TP 70" class="max-w-xs mx-auto">
+<div role="img" aria-label="Model A confusion matrix: TN 840, FP 60, FN 20, TP 80" class="max-w-xs mx-auto">
 <div class="grid grid-cols-[4rem_1fr_1fr] gap-1 text-center text-xs">
 <div></div><div class="font-bold text-blue-300">Pred N</div><div class="font-bold text-blue-300">Pred P</div>
-<div class="flex items-center justify-end pr-1 font-bold text-teal-300">Act N</div><div border="2 solid teal-800" bg="teal-800/20" rounded p-2>750</div><div border="2 solid red-800" bg="red-800/20" rounded p-2>150</div>
-<div class="flex items-center justify-end pr-1 font-bold text-teal-300">Act P</div><div border="2 solid red-800" bg="red-800/20" rounded p-2>30</div><div border="2 solid teal-800" bg="teal-800/20" rounded p-2>70</div>
+<div class="flex items-center justify-end pr-1 font-bold text-teal-300">Act N</div><div border="2 solid teal-800" bg="teal-800/20" rounded p-2>840</div><div border="2 solid red-800" bg="red-800/20" rounded p-2>60</div>
+<div class="flex items-center justify-end pr-1 font-bold text-teal-300">Act P</div><div border="2 solid red-800" bg="red-800/20" rounded p-2>20</div><div border="2 solid teal-800" bg="teal-800/20" rounded p-2>80</div>
 </div>
 </div>
-<div class="text-xs opacity-75 mt-2 text-center">Accuracy = 820/1000 = 0.82. Many false alarms (150 FP), few misses (30 FN).</div>
+<div class="text-xs opacity-75 mt-2 text-center">Accuracy = 920/1000 = 0.92. More false alarms (60 FP), fewer misses (20 FN).</div>
 </div>
 <div>
 <div class="text-sm font-bold text-blue-300 mb-2 text-center">Model B — false-negative heavy</div>
@@ -114,9 +114,56 @@ Accuracy alone cannot distinguish these two error profiles — you must look at 
 </div>
 
 <!--
-Two classifiers can look similarly strong on accuracy while failing in opposite, operationally very different ways, and accuracy alone cannot tell them apart — you have to open the matrix. Model A trades away precision for recall: it produces 150 false positives but only 30 false negatives (accuracy 0.82), so it catches most real positive cases (high recall, 70/100 = 0.70) at the cost of a lot of false alarms (precision 70/220 ≈ 0.32). Model B does the reverse: only 30 false positives, but 50 false negatives (accuracy 0.92, actually higher), so it rarely raises a false alarm (precision 50/80 = 0.625) but also misses half of the real positives (recall = 50/100 = 0.5).
+These classifiers have exactly the same accuracy, 920/1000 = 0.92, while failing in operationally different ways. Model A trades precision for recall: it produces 60 false positives and 20 false negatives, so recall is 80/100 = 0.80 and precision is 80/140 ≈ 0.57. Model B does the reverse: it produces only 30 false positives but 50 false negatives, so precision is 50/80 = 0.625 while recall falls to 50/100 = 0.50.
 
-Ask which model fits which deployment. For airport security screening, missing a real threat (FN) is far more costly than a false alarm that costs a few minutes of extra screening (FP) — Model A's profile, high recall and lower precision, is the better fit even though its raw accuracy is lower than Model B's. For a spam filter, a false positive means a legitimate email — maybe a job offer or a bill — gets buried in the spam folder and the user may never see it, while a false negative just means one more spam email to delete; Model B's profile, high precision and lower recall, is the better fit there, and it also happens to win on accuracy. The general lesson: whenever you compare models, compare their confusion matrices, not just their accuracy — two models can be "similarly accurate," or even have accuracy pointing the wrong way for your use case, and still be wildly different products once you look at where the errors land.
+Ask which model fits which deployment. For airport security screening, missing a real threat is more costly than a false alarm that triggers extra screening, so Model A's higher-recall profile is the better fit. For a spam filter, a false positive can hide a legitimate message while a false negative usually means one more spam message to delete, so Model B's profile may fit better. The general lesson is that accuracy can be identical while the consequences differ sharply.
+-->
+
+---
+glowSeed: 5321
+---
+
+# Specificity and Negative Predictive Value
+
+<div class="grid grid-cols-2 gap-8 items-start">
+<div>
+<div class="space-y-3 mt-4">
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<span class="font-bold text-teal-300">Specificity</span>
+<span class="text-sm opacity-85"> — Of all actual negatives, how many did the model correctly reject?</span>
+</div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<span class="font-bold text-blue-300">Negative predictive value</span>
+<span class="text-sm opacity-85"> — When the model says negative, how often is it right?</span>
+</div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<span class="font-bold text-amber-300">Clinical language</span>
+<span class="text-sm opacity-85"> — Recall is also sensitivity. These four rates describe both sides of a screening decision.</span>
+</div>
+</div>
+</div>
+<div>
+<div v-click class="mt-5" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
+
+$$
+\mathrm{Specificity}=\frac{TN}{TN+FP}
+$$
+
+</div>
+<div v-click class="mt-4" border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3>
+
+$$
+\mathrm{NPV}=\frac{TN}{TN+FN}
+$$
+
+</div>
+</div>
+</div>
+
+<!--
+Precision and recall focus on positive decisions. Specificity and negative predictive value complete the picture. Specificity conditions on the actual negatives, so its denominator is TN+FP. Negative predictive value conditions on negative predictions, so its denominator is TN+FN. Recall is often called sensitivity in medical settings.
+
+Keep the conditioning questions explicit. Sensitivity and specificity describe performance within the true positive and true negative groups. Precision and NPV describe how trustworthy positive and negative predictions are. Precision and NPV therefore change when prevalence changes, even if sensitivity and specificity remain stable.
 -->
 
 ---

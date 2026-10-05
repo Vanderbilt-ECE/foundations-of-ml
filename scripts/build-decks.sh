@@ -13,6 +13,15 @@ slugify() { echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s
 
 find "$root_dir" -path "*/Presentations/*/slides.md" -print0 | while IFS= read -r -d '' slides; do
   deck_dir=$(dirname "$slides")
+  # Deck-specific libraries must also be present in a clean CI checkout.
+  if [[ -f "$deck_dir/package-lock.json" ]]; then
+    (cd "$deck_dir" && npm ci)
+  elif [[ -f "$deck_dir/package.json" ]] && node -e '
+    const p = require(process.argv[1]);
+    process.exit(Object.keys(p.dependencies || {}).length + Object.keys(p.devDependencies || {}).length ? 0 : 1);
+  ' "$deck_dir/package.json"; then
+    (cd "$deck_dir" && npm install --no-package-lock)
+  fi
   unit_dir=$(dirname "$(dirname "$deck_dir")")
   unit_slug=$(slugify "$(basename "$unit_dir")")
   deck_slug=$(slugify "$(basename "$deck_dir")")

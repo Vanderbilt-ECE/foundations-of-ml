@@ -13,3 +13,10 @@ tmp/
 .tmp-*/
 .venv/
 pnpm-lock.yaml
+
+# Large datasets
+Model Evaluation/assignments/creditcard.csv
+
+# Python bytecode
+__pycache__/
+*.py[cod]
