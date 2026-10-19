@@ -1,1 +1,7 @@
 @import '../../../slidev_template/style.css';
+
+/* DM Sans draws α almost exactly like a Latin "a"; set it in a serif italic instead */
+.greek {
+  font-family: 'Times New Roman', Georgia, 'STIX Two Text', serif;
+  font-style: italic;
+}
