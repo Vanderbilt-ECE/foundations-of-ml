@@ -26,9 +26,9 @@ const betaPct = Math.round(normCdf(crit - shift) * 100)
   <svg role="img" aria-label="Two overlapping bell curves: the null distribution centered at zero and an alternative distribution shifted right. A critical line splits them: the small null tail beyond it is the false-positive rate alpha, the alternative's area left of it is the false-negative rate beta, and the area right of it is power." viewBox="0 0 520 300" class="w-full max-w-xl mx-auto">
     <line x1="0" :y1="base" :x2="W" :y2="base" stroke="#64748b" stroke-width="2" />
     <!-- shaded regions -->
-    <path v-show="step >= 3" :d="power" fill="#2dd4bf" fill-opacity=".22" />
-    <path v-show="step >= 2" :d="beta" fill="#60a5fa" fill-opacity=".45" />
-    <path v-show="step >= 1" :d="alpha" fill="#f87171" fill-opacity=".8" />
+    <path v-show="step >= 3" :d="power" fill="#2dd4bf" style="fill-opacity: .22" />
+    <path v-show="step >= 2" :d="beta" fill="#60a5fa" style="fill-opacity: .45" />
+    <path v-show="step >= 1" :d="alpha" fill="#f87171" style="fill-opacity: .8" />
     <!-- curves -->
     <path :d="h0" fill="none" stroke="#94a3b8" stroke-width="3.5" />
     <path :d="h1" fill="none" stroke="#2dd4bf" stroke-width="3.5" />

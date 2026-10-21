@@ -9,6 +9,8 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import (
     AdaBoostClassifier,
     GradientBoostingClassifier,
+    GradientBoostingRegressor,
+    HistGradientBoostingRegressor,
     RandomForestClassifier,
 )
 from sklearn.linear_model import LogisticRegression
@@ -47,13 +49,24 @@ def check_ensembles() -> None:
     rng = np.random.default_rng(0)
     Xr = rng.uniform(0, 10, (120, 1))
     yr = np.sin(Xr[:, 0]) + rng.normal(0, 0.1, 120)
-    pred = np.zeros_like(yr)
+    # the boosting deck's hand-written loop: start from the mean, fit stumps to residuals
+    pred = np.full_like(yr, yr.mean())
     initial_mse = np.mean((yr - pred) ** 2)
     for _ in range(30):
-        tree = DecisionTreeRegressor(max_depth=2, random_state=0)
+        tree = DecisionTreeRegressor(max_depth=1, min_samples_leaf=5)
         tree.fit(Xr, yr - pred)
         pred += 0.1 * tree.predict(Xr)
     assert np.isfinite(pred).all() and np.mean((yr - pred) ** 2) < initial_mse
+    gbr = GradientBoostingRegressor(
+        learning_rate=0.1, n_estimators=30, max_depth=1, min_samples_leaf=5
+    ).fit(Xr, yr)
+    assert np.allclose(pred, gbr.predict(Xr))
+
+    # early stopping must be requested explicitly below 10,000 rows
+    hgb = HistGradientBoostingRegressor(
+        max_iter=500, early_stopping=True, random_state=0
+    ).fit(Xr, yr)
+    assert hgb.n_iter_ < 500
 
     variance = lambda rho, B: rho + (1 - rho) / B
     assert variance(0.2, 100) < variance(0.2, 10)

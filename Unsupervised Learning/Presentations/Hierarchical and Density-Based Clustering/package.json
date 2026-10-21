@@ -1,0 +1,13 @@
+{
+  "name": "hierarchical-and-density-based-clustering",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "PATH=/opt/homebrew/opt/node@20/bin:$PATH ../../../slidev_template/node_modules/.bin/slidev --open",
+    "build": "PATH=/opt/homebrew/opt/node@20/bin:$PATH ../../../slidev_template/node_modules/.bin/slidev build",
+    "export": "PATH=/opt/homebrew/opt/node@20/bin:$PATH ../../../slidev_template/node_modules/.bin/slidev export"
+  },
+  "dependencies": {
+    "plotly.js-dist-min": "3.7.0"
+  }
+}

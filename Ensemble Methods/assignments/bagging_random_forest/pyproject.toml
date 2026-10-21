@@ -1,0 +1,10 @@
+[project]
+name = "bagging-random-forest"
+version = "0.1.0"
+description = "Single decision tree vs bagging vs random forest on the two-moons dataset"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "scikit-learn",
+    "plotly",
+]

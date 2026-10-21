@@ -35,7 +35,7 @@ glowSeed: 550
 <!--
 The last two decks built up a full toolkit of evaluation metrics — accuracy, precision, recall, F1, ROC-AUC, and the confusion matrix they all come from. This deck asks a question none of those tools answer by themselves: if model B scores 91% and model A scores 89% on the same test set, is B actually better, or did it just get a slightly easier random sample of test cases?
 
-Roadmap: treat any test-set score as a random variable, then formalize "is this gap real" with the null-hypothesis significance-testing frame. We apply McNemar's test to paired classifier predictions, examine dependence in cross-validation comparisons, build a bootstrap interval for a metric difference, and separate statistical significance from practical significance. Along the way we add confidence intervals for a single score, Type I/II errors and statistical power, a guide to choosing the right test, and the multiple-comparisons trap.
+Roadmap: treat any test-set score as a random variable, then formalize "is this gap real" with the null-hypothesis significance-testing frame. We apply McNemar's test to paired classifier predictions, build a bootstrap interval for a metric difference, and separate statistical significance from practical significance. Along the way we add confidence intervals for a single score, Type I/II errors and statistical power.
 -->
 
 ---
@@ -507,6 +507,7 @@ $$
 </div>
 </div>
 </div>
+<div>
 <svg role="img" aria-label="Top: 200 test examples drawn as small squares, 180 gray where the models agree, 12 teal where only B is right, 8 red where only A is right. Bottom: two bell curves for the gap under the null, a wide gray one for the unpaired standard error of 3.0 points and a narrower teal one for the paired standard error of 2.2 points, with the observed 2-point gap marked." viewBox="0 0 540 350" class="w-full mt-1">
   <g v-click="1">
     <g><rect x="30" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="42" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="54" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="90" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="114" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="126" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="138" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="150" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="162" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="174" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="198" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="210" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="222" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="234" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="246" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="258" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="270" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="282" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="294" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="306" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="318" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="330" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="342" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="354" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="390" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="402" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="414" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="426" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="438" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="450" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="462" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="474" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="486" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="498" y="30" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="30" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="54" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="66" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="78" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="90" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="102" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="114" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="126" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="138" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="150" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="162" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="174" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="186" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="198" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="210" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="222" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="234" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="246" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="258" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="270" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="282" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="294" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="306" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="330" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="342" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="366" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="378" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="390" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="402" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="414" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="426" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="438" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="462" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="474" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="486" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="498" y="42" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="30" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="54" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="66" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="78" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="90" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="114" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="126" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="138" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="150" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="162" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="174" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="186" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="210" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="222" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="234" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="246" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="258" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="270" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="282" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="306" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="318" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="342" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="354" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="366" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="378" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="390" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="402" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="414" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="426" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="438" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="450" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="462" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="474" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="486" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="498" y="54" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="54" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="66" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="78" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="90" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="102" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="114" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="126" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="138" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="150" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="162" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="174" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="186" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="198" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="210" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="222" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="234" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="246" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="258" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="270" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="282" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="294" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="306" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="318" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="330" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="342" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="354" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="366" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="378" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="390" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="402" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="414" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="426" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="438" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="450" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="462" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="486" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="498" y="66" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="30" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="42" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="54" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="66" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="78" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="90" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="102" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="114" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="138" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="150" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="162" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="174" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="186" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="198" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="210" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="222" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="234" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="246" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="258" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="270" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="282" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="294" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="306" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="318" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="330" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="342" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="354" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="366" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="378" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="390" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="402" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="414" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="426" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="438" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="450" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="474" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="486" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/><rect x="498" y="78" width="10" height="10" rx="2" fill="#475569" fill-opacity=".55"/></g>
@@ -529,6 +530,21 @@ $$
     <text x="187.2" y="178" fill="#5eead4" text-anchor="end" style="font-size:13px;font-weight:700">paired: SE ≈ 2.2</text>
   </g>
 </svg>
+<div v-click="4" class="legend10 mt-1 grid grid-cols-[2.5rem_1fr] items-center gap-x-3 text-sm">
+<svg width="40" height="10" aria-hidden="true"><line x1="0" y1="5" x2="40" y2="5" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5"/></svg>
+<div class="opacity-85">
+
+Unpaired: $\mathrm{SE}_{\text{gap}}=\sqrt{\mathrm{SE}_A^2+\mathrm{SE}_B^2}\approx 3.0$ pts
+
+</div>
+<svg width="40" height="10" aria-hidden="true"><line x1="0" y1="5" x2="40" y2="5" stroke="#2dd4bf" stroke-width="3.5"/></svg>
+<div class="text-teal-200">
+
+Paired: $\mathrm{SE}_{\text{gap}}\approx\dfrac{\sqrt{\text{disagreements}}}{n}=\dfrac{\sqrt{20}}{200}\approx 2.2$ pts
+
+</div>
+</div>
+</div>
 </div>
 
 <!--
@@ -626,6 +642,78 @@ The takeaway for this module: a non-significant result is only informative if th
 -->
 
 ---
+glowSeed: 5524
+---
+
+# From Paired SE to McNemar's χ²
+
+<div class="text-sm opacity-80 -mt-2 mb-3">n₀₁ = only B right, n₁₀ = only A right, n = test examples. Disagreements = n₀₁ + n₁₀.</div>
+
+<div class="grid grid-cols-2 gap-6 items-start" style="font-size: .82em">
+<div class="space-y-2">
+<div v-click="1" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-1>
+<span class="font-bold text-blue-300">1 · The gap, in counts</span><span class="text-xs opacity-85"> — agreements cancel out</span>
+
+$$
+\text{gap}=\hat p_B-\hat p_A=\frac{n_{01}-n_{10}}{n}
+$$
+
+</div>
+<div v-click="2" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-1>
+<span class="font-bold text-amber-300">2 · Its SE, in counts</span><span class="text-xs opacity-85"> — slide 10's paired SE, if H₀ is true</span>
+
+$$
+\mathrm{SE}_{\text{gap}}\approx\frac{\sqrt{\text{disagreements}}}{n}=\frac{\sqrt{n_{01}+n_{10}}}{n}
+$$
+
+</div>
+<div v-click="3" class="text-sm opacity-85 px-1">To tell whether a gap is big relative to the noise, normalize the gap by its standard error.</div>
+<div v-click="3" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-1>
+<span class="font-bold text-teal-200">3 · Divide: the gap in SEs</span><span class="text-xs opacity-85"> — the 1/n cancels</span>
+
+$$
+z=\frac{(n_{01}-n_{10})/n}{\sqrt{n_{01}+n_{10}}\,/\,n}=\frac{n_{01}-n_{10}}{\sqrt{n_{01}+n_{10}}}
+$$
+
+</div>
+</div>
+<div class="space-y-2">
+<div v-click="4" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-1>
+<span class="font-bold text-violet-300">4 · Square it</span><span class="text-xs opacity-85"> — χ² ≈ z²</span>
+
+$$
+z^2=\frac{(n_{01}-n_{10})^2}{n_{01}+n_{10}}
+$$
+
+</div>
+<div v-click="5" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-1>
+<span class="font-bold text-red-300">5 · Continuity correction</span><span class="text-xs opacity-85"> — counts move in whole steps; shaving 1 off |n₀₁ − n₁₀| keeps the smooth curve from overstating the evidence</span>
+
+$$
+\chi^2=\frac{(|n_{01}-n_{10}|-1)^2}{n_{01}+n_{10}}
+$$
+
+</div>
+</div>
+</div>
+
+<!--
+This slide connects the paired standard error from slide 10 to the McNemar formula on the next slide. Nothing new is assumed; it is the same "gap in standard errors" idea from the decision-rule slides, just written in counts.
+
+Step 1: the accuracy gap between B and A only depends on the cases where they disagree. Every both-right or both-wrong example adds the same amount to both accuracies, so it cancels. B gains one point of n for each n₀₁ case and A for each n₁₀ case, so the gap is (n₀₁ − n₁₀)/n.
+
+Step 2: slide 10's paired SE, written without q. Score each example +1 if only B is right, −1 if only A is right, and 0 if they agree. If the models are equal, these scores average zero, and their variance is just the fraction of examples that are ±1, which is (n₀₁ + n₁₀)/n. The gap is the average of n such scores, so its variance is that divided by n, and its SE is √(n₀₁ + n₁₀)/n.
+
+Step 3: divide the gap by its SE to measure it in standard errors. The 1/n on top and bottom cancels, which is why McNemar's formula never mentions n: the cases where the models agree drop out completely.
+
+Step 4: square z. On the next slides we will see that squaring is the χ² ≈ z² step, which moves the cutoff from 1.96 to 3.84.
+
+Step 5: the −1 is a continuity correction. With the number of disagreements fixed, n₀₁ − n₁₀ can only change in steps of 2, but we are comparing it against a smooth curve. Shrinking |n₀₁ − n₁₀| by 1, half a step, makes the approximation closer to the exact coin-flip calculation and keeps it from overstating the evidence, especially when there are few disagreements.
+
+Check: slide 10 had 12 B-only and 8 A-only cases out of 200. z = (12 − 8)/√20 ≈ 0.89, exactly the "0.89 SE" from that slide. An equivalent view, which also underlies the exact binomial test mentioned in the worked example's notes: if the models are equal, each disagreement is a fair coin flip, so n₀₁ ~ Binomial(d, ½) with mean d/2 and standard deviation √d/2; standardizing gives the same z.
+-->
+
+---
 glowSeed: 553
 ---
 
@@ -646,7 +734,7 @@ glowSeed: 553
 <span class="font-bold text-amber-300">Ignore agreements</span>
 <span class="text-sm opacity-85"> — Both-right (n₁₁) and both-wrong (n₀₀) add no noise to the gap and do not distinguish the models.</span>
 </div>
-<div border="2 solid red-800" bg="red-800/20" rounded-lg px-4 py-3 class="text-sm">
+<div v-click border="2 solid red-800" bg="red-800/20" rounded-lg px-4 py-3 class="text-sm">
 <div><span class="font-bold text-red-300">n₀₁</span>: Only model B got it right</div>
 <div><span class="font-bold text-red-300">n₁₀</span>: Only model A got it right</div>
 </div>
@@ -667,16 +755,13 @@ $$
 $$
 
 </div>
-<div v-click class="mt-3 text-sm" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-3>
-<span class="font-bold text-amber-300">Decision rule</span> — Reject H₀ if χ² &gt; 3.84 (= 1.96², the critical value for α = 0.05). If the models are equal, this false alarm happens only 5% of the time.
-</div>
 </div>
 </div>
 
 <!--
 This table is a genuinely different object from the confusion matrix in the previous deck: that matrix cross-tabulated actual label against predicted label for one model; this one cross-tabulates model A's correctness against model B's correctness on the same set of test examples, so it says nothing about which class each example belongs to, only about which model got which examples right. n₁₁ is examples both models got right; n₀₀ is examples both got wrong; these two "agreement" cells carry no information about which model is better, because they happen regardless of any real skill difference. The action is entirely in the two discordant cells: n₁₀ is examples A got right and B got wrong (evidence for A), n₀₁ is examples A got wrong and B got right (evidence for B).
 
-The last card ties McNemar back to the decision rule from the previous two slides: the critical value 3.84 is 1.96 squared, so rejecting when χ² exceeds 3.84 is the same as rejecting when the gap is more than 1.96 standard errors from zero, which gives a Type I error rate of 5%. McNemar's test asks: under H₀ (the two models are equally likely to be the one that's right when they disagree), n₀₁ and n₁₀ should each be about half of the total disagreements n₀₁+n₁₀. The χ² statistic formalizes that: (|n₀₁ − n₁₀| − 1)² in the numerator measures the squared imbalance between the two discordant counts (the −1 is a continuity correction, since a discrete count is being approximated by a continuous χ² distribution), divided by n₀₁+n₁₀, the total number of disagreements, which sets the scale of noise you'd expect from that many coin flips. This statistic follows a χ² distribution with 1 degree of freedom under H₀, so a p-value follows immediately by comparing against that reference distribution. Next slide works this out with real numbers.
+McNemar's test asks: under H₀ (the two models are equally likely to be the one that's right when they disagree), n₀₁ and n₁₀ should each be about half of the total disagreements n₀₁+n₁₀. The χ² statistic formalizes that: (|n₀₁ − n₁₀| − 1)² in the numerator measures the squared imbalance between the two discordant counts (the −1 is a continuity correction, since a discrete count is being approximated by a continuous χ² distribution), divided by n₀₁+n₁₀, the total number of disagreements, which sets the scale of noise you'd expect from that many coin flips. This statistic follows a χ² distribution with 1 degree of freedom under H₀, so a p-value follows immediately by comparing against that reference distribution. Next slide works this out with real numbers.
 
 McNemar's test reduces each prediction to correct or incorrect, so it tests an accuracy-like question. It does not directly test a difference in AUC, F1, calibration, or application-specific cost. Those quantities need uncertainty procedures designed for the metric itself.
 -->
@@ -695,13 +780,62 @@ $\chi^2=\dfrac{(|n_{01}-n_{10}|-1)^2}{n_{01}+n_{10}}$
 </div>
   <div class="rounded-lg border border-teal-800 bg-teal-800/20 px-4 py-2 text-sm"><span class="font-bold text-teal-200">In words:</span> χ² measures how far the two models’ wins among disagreements depart from an equal split.</div>
 </div>
-<div class="text-sm opacity-75 mb-0">Height is χ²; the white line marks equal wins; above the amber plane (χ² = 3.84) we reject H₀. Drag to rotate.</div>
 <div style="height: 400px; margin-top: -40px">
 <McNemarSurface />
 </div>
 
 <!--
 The horizontal axes are the two kinds of paired disagreement: n₀₁ counts cases B gets right that A misses; n₁₀ counts cases A gets right that B misses. The statistic is small along the highlighted valley, where the models win about equally often. Moving away from the valley means the split becomes more imbalanced; increasing the total number of disagreements makes that imbalance stronger evidence against the equal-performance null. The height is the continuity-corrected χ² value, which is compared with a chi-squared distribution with one degree of freedom to obtain a p-value. The displayed ranges are 0 to 30 for each count.
+-->
+
+---
+glowSeed: 5545
+---
+
+# From χ² to a Decision
+
+<div class="grid grid-cols-2 gap-8 items-start">
+<div>
+<div class="space-y-3 mt-2" style="font-size: .85em">
+<div v-click="1" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2>
+<span class="font-bold text-teal-300">1 · α sets the critical value</span>
+<span class="text-sm opacity-85"> — Fix α = 0.05 first. With the gap in standard errors, 5% of the null curve lies beyond ±1.96: that is the critical value from slides 11–12.</span>
+</div>
+<div v-click="2" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2>
+<span class="font-bold text-blue-300">2 · χ² is the gap, squared</span>
+<span class="text-sm opacity-85"> — McNemar's χ² ≈ z². Squaring moves the cutoff to 1.96² = 3.84 and folds both 2.5% tails into one 5% tail.</span>
+</div>
+<div v-click="3" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-2>
+<span class="font-bold text-amber-300">3 · The decision rule</span>
+<span class="text-sm opacity-85"> — Reject H₀ if χ² &gt; 3.84; otherwise make no claim. If the models are equal, it false-alarms only 5% of the time.</span>
+</div>
+<div v-click="4" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
+<span class="font-bold text-teal-200">4 · Same rule, two forms</span>
+<span class="text-sm opacity-85"> — χ² &gt; 3.84 exactly when p &lt; 0.05: compare the statistic to the critical value, or the tail area to α.</span>
+</div>
+</div>
+</div>
+<div class="mt-2">
+<DecisionRuleSvg :step="$clicks" />
+<div v-click="1" class="mt-3" style="font-size: .85em" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-1>
+<span class="font-bold text-teal-200">Paired standard error</span><span class="text-xs opacity-75"> — the gap's width, from slide 10</span>
+
+$$
+\mathrm{SE}_{\text{gap}}\approx\frac{\sqrt{\text{disagreements}}}{n}
+$$
+
+</div>
+</div>
+</div>
+
+<!--
+This slide connects McNemar's statistic to the decision rule we set up on the "A Test Is a Decision Rule" and "Type I and Type II Errors" slides. There, the critical value was the cutoff line: a gap beyond it gets called significant, and the area of the null curve beyond it is α, the false-alarm rate. We choose α first, usually 0.05, and that choice fixes where the line goes.
+
+Top panel: measure the gap in standard errors, z. Under H₀ it follows a standard bell curve. For a two-sided test, the 5% is split between the two tails, 2.5% beyond +1.96 and 2.5% beyond −1.96. (The Type I/II picture showed only the right tail, to keep it simple; with a two-sided test both tails count.) So 1.96 is the critical value on the z scale.
+
+Bottom panel: McNemar's χ² is essentially that z, squared. Squaring throws away the sign, so a gap of −2.5 SE and a gap of +2.5 SE both become 6.25. That folds the two 2.5% tails into a single 5% tail on the right of the χ² distribution with one degree of freedom, and the cutoff moves from 1.96 to 1.96² = 3.84. Nothing about the rule has changed; we are just reading it on a squared scale.
+
+So the decision rule for McNemar's test is: reject H₀ if χ² exceeds 3.84, otherwise make no claim. By construction, if the two models are truly equal, the rule fires falsely only 5% of the time, which is exactly the α we chose. Equivalently, the p-value is the tail area beyond the observed χ², and χ² exceeds 3.84 exactly when that area is smaller than 0.05. The next slide applies this rule to real counts.
 -->
 
 ---
@@ -762,9 +896,6 @@ $$
 <div v-click="3" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
 <span class="font-bold text-teal-200">3 · The decision</span><span class="text-xs opacity-85"> — 5.63 &gt; 3.84 (z beyond ±1.96): reject H₀ at α = 0.05, with only a 5% false-alarm rate.</span>
 </div>
-<div v-click="4" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2>
-<span class="font-bold text-violet-300">Sanity check</span><span class="text-xs opacity-85"> — If the models were equal, the 30 disagreements are fair coin flips; 22+ B-wins (or ≤ 8) has exact probability ≈ 0.016.</span>
-</div>
 </div>
 </div>
 </div>
@@ -772,7 +903,70 @@ $$
 <!--
 On the χ² scale, the p-value is the tail beyond 5.63 of a chi-squared distribution with 1 degree of freedom (the distribution of one squared standard normal, which is why it matches the two normal tails). The key to reading the result is the picture: the bell curve is the distribution of the gap in standard errors if H₀ is true, the p-value is the area in the shaded tails beyond the observed z, and the decision rule compares the observed value with the critical value 1.96 (3.84 on the χ² scale). Plug the discordant counts from this table into the formula from the previous slide: n₀₁ = 22 (B right, A wrong) and n₁₀ = 8 (A right, B wrong), so χ² = (|22−8|−1)² / (22+8) = 13² / 30 = 169/30 ≈ 5.63. Comparing that to a χ² distribution with 1 degree of freedom gives p ≈ 0.018 — verified directly against scipy.stats.chi2. Because 22+8 = 30 is a fairly small number of disagreements, it is worth cross-checking with the exact test: under H₀, n₀₁ should be Binomial(n₀₁+n₁₀, 0.5) = Binomial(30, 0.5), and the exact two-sided binomial test on observing 22 (or fewer than 8, the symmetric tail) gives p ≈ 0.016 — close to the χ² approximation and confirming the same conclusion. As a rule of thumb, prefer the exact binomial test over the χ² approximation whenever the number of discordant pairs is small, roughly under 25, since the χ² approximation can be unreliable in that regime; here they happen to agree closely.
 
-Both p-values are below the conventional 0.05 threshold, so we reject H₀: it is unlikely that models A and B are truly equally good and this 22-vs-8 split in their disagreements arose by chance alone. Practically, this means model B's advantage over model A, observed on these 500 shared test examples, is probably a real difference in skill and not sampling noise — though remember from the previous slide that "statistically significant" is a claim about surprise under H₀, not a guarantee about the true size of the gap or whether that gap is large enough to matter operationally, which is exactly the distinction the "statistical vs. practical significance" slide later in this deck will sharpen.
+Both p-values are below the conventional 0.05 threshold, so we reject H₀: it is unlikely that models A and B are truly equally good and this 22-vs-8 split in their disagreements arose by chance alone. Practically, this means model B's advantage over model A, observed on these 500 shared test examples, is probably a real difference in skill and not sampling noise — though remember from the previous slide that "statistically significant" is a claim about surprise under H₀, not a guarantee about the true size of the gap or whether that gap is large enough to matter operationally, which is exactly the distinction the "Reading an Interval" slide later in this deck will sharpen.
+-->
+
+---
+glowSeed: 5543
+---
+
+# Summary: The Decision Rule
+
+<NullRejectSvg />
+
+<div class="mt-3 mx-auto max-w-3xl text-center" border="2 solid red-800" bg="red-800/20" rounded-lg px-6 py-3>
+<div class="text-xl">If the models were equal, would a gap as large as the observed one happen <span class="font-bold text-red-300">less than 5%</span> of the time?</div>
+<div class="text-xl font-bold text-red-300 mt-1">If so, reject the null hypothesis.</div>
+</div>
+
+<div v-click class="mt-3 flex justify-center">
+<div class="text-2xl px-6 py-2 [&>p]:my-0" border="2 solid amber-800" bg="amber-800/20" rounded-lg>
+
+Equivalent to $\chi^2 > 3.84$
+
+</div>
+</div>
+
+<!--
+This is the whole test on one slide. Draw the distribution of the gap, measured in standard errors, that we would see if the two models were truly equal. The red tails beyond ±1.96 hold 5% of that curve. If the observed gap lands in the red, it is a result that would happen less than 5% of the time under H₀, so we reject H₀ and call the difference significant. If it lands in the middle, we make no claim.
+
+McNemar's χ² is that same gap in standard errors, squared, so "beyond ±1.96" becomes "χ² greater than 1.96² = 3.84". In the worked example, χ² = 5.63 is above 3.84, equivalently z = 2.37 is in the red tail, so we rejected H₀.
+-->
+
+---
+glowSeed: 5522
+---
+
+# Type I and Type II Errors, Graphically
+
+<div class="grid grid-cols-2 gap-8 items-start">
+<div>
+<div class="space-y-3 mt-2">
+<div v-click border="2 solid red-800" bg="red-800/20" rounded-lg px-4 py-3>
+<span class="font-bold text-red-300">Type I error (α)</span>
+<span class="text-sm opacity-85"> — Declare a winner when the models are truly equal. A false alarm; we fix α, usually 0.05.</span>
+</div>
+<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3>
+<span class="font-bold text-blue-300">Type II error (β)</span>
+<span class="text-sm opacity-85"> — Miss a real improvement because the test set was too noisy to show it.</span>
+</div>
+<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
+<span class="font-bold text-teal-300">Power = 1 − β</span>
+<span class="text-sm opacity-85"> — The chance a test detects a gap that is really there. Aim for 80% or more.</span>
+</div>
+</div>
+</div>
+<div class="mt-10">
+<TypeErrorsSvg :step="$clicks" />
+</div>
+</div>
+
+<!--
+Every test can fail in two directions. A Type I error, controlled by the significance level α, is a false alarm: the models are equal but the sampled test set happened to produce a gap at least as extreme as the one we saw, so we reject H₀. By choosing α = 0.05 we accept being fooled about one time in twenty when nothing is going on — that is the small red tail of the grey null curve in the picture.
+
+A Type II error, probability β, is the opposite: the improvement is real, so the true gap sits where the teal curve is centered, but our measurement is noisy enough that the observed gap often lands to the left of the critical value and we fail to reject. The blue region is that mass. Power is the remaining teal area to the right of the critical line, the probability that we do detect the improvement.
+
+The takeaway for this module: a non-significant result is only informative if the test had enough power to see a gap of the size you care about. The picture also shows the lever you actually control — a bigger test set makes both curves narrower, which separates them and raises power without changing α. The next section of the deck quantifies exactly how much data that takes.
 -->
 
 ---
@@ -812,143 +1006,41 @@ Two practical points. First, if q is smaller — the models are very similar —
 -->
 
 ---
-glowSeed: 555
----
-
-# Comparisons Across Cross-Validation Runs
-
-<div class="grid grid-cols-2 gap-8 items-start">
-<div>
-<div class="space-y-3 mt-4">
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-teal-300">Use the same splits</span>
-<span class="text-sm opacity-85"> — Both models must face the same training and validation partitions.</span>
-</div>
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-blue-300">Repeat the experiment</span>
-<span class="text-sm opacity-85"> — Repeated CV measures how the performance gap changes across several partitions.</span>
-</div>
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-amber-300">Account for dependence</span>
-<span class="text-sm opacity-85"> — Scores from ordinary k-fold CV are correlated because their training sets overlap.</span>
-</div>
-</div>
-</div>
-<div>
-<div v-click class="mt-4" style="font-size: .9em" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
-
-$$
-d_{r,f}=\mathrm{score}_{A,r,f}-\mathrm{score}_{B,r,f}
-$$
-
-</div>
-<div v-click class="mt-3 text-xs opacity-75">
-Use a corrected resampled test, a 5×2cv paired test, or a paired bootstrap suited to the metric and evaluation design.
-</div>
-</div>
-</div>
-
-<!--
-When models are compared through cross-validation, keep the splits paired: model A and model B should use the same rows in every training and validation partition. Repeating cross-validation with several random partitions provides more information about how stable the gap is than a single k-fold run.
-
-Do not apply an ordinary paired t-test to the k fold scores as though they were independent observations. Their training sets overlap, so the differences are correlated and the usual standard error is too small. Methods such as the corrected resampled t-test and the 5×2cv paired test explicitly address this design. A paired bootstrap can estimate uncertainty when predictions can be resampled in a way that respects the data structure. The correct method depends on what is being estimated and whether observations are independent, grouped, or ordered in time.
--->
-
----
 glowSeed: 5551
 ---
 
 # Bootstrap the Performance Difference
 
-<div class="grid grid-cols-2 gap-8 items-start">
+<div class="grid grid-cols-2 gap-6 items-start">
+<div class="space-y-2" style="font-size: .88em">
+<div v-click="1" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2><span class="font-bold text-teal-300">1 · Resample the test set</span><span class="text-sm opacity-85"> — Draw 500 examples at random, with replacement, from the 500 in the test set. Each example keeps its label and both models' predictions.</span></div>
+<div v-click="2" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2><span class="font-bold text-blue-300">2 · Recompute the gap</span><span class="text-sm opacity-85"> — Score both models on the resample: gap = B's metric − A's metric. Any metric works: accuracy, F1, AUC.</span></div>
+<div v-click="3" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2><span class="font-bold text-violet-300">3 · Repeat 10,000 times</span><span class="text-sm opacity-85"> — The histogram of gaps shows how much the gap would vary across test sets.</span></div>
+<div v-click="4" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2><span class="font-bold text-teal-200">4 · Read the 95% interval</span><span class="text-sm opacity-85"> — The middle 95% of the gaps (2.5th to 97.5th percentile). If it excludes 0, the gap is significant at α = 0.05.</span></div>
+</div>
 <div>
-<div class="space-y-3 mt-4">
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-teal-300">Resample cases</span><span class="text-sm opacity-85"> — Draw test observations with replacement and keep both models' predictions paired.</span></div>
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-blue-300">Recompute the gap</span><span class="text-sm opacity-85"> — Calculate accuracy, recall, AUC, or another metric for both models in each resample.</span></div>
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-amber-300">Read the interval</span><span class="text-sm opacity-85"> — The bootstrap distribution shows plausible values and the stability of the improvement.</span></div>
+<div class="text-sm opacity-80 mb-1">The worked example's 500 test cases, accuracy as the metric</div>
+<BootstrapHist :step="$clicks" />
+<div v-click="4" class="text-sm mt-1" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-2>
+<span class="font-bold text-amber-300">95% interval: +0.6 to +5.0 pts.</span> It excludes 0, so B is better: the same verdict as McNemar, plus a range for how much better.
 </div>
-</div>
-<div>
-<div v-click class="mt-5" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
-
-$$
-\Delta_b=M_A(D_b)-M_B(D_b),\quad b=1,\ldots,B
-$$
-
-</div>
-<div v-click class="mt-4 text-sm opacity-85">A percentile interval uses the 2.5th and 97.5th percentiles of the bootstrap gaps for an approximate 95% interval.</div>
 </div>
 </div>
 
 <!--
-The paired bootstrap turns the recommendation to report an interval into a concrete procedure. Sample test observations with replacement. For every bootstrap sample, keep each observation's true label and both models' predictions together, then recompute the metric difference. The resulting distribution describes how much the observed gap changes under resampling.
+McNemar's test only works when each prediction is simply right or wrong, so it is really a test for accuracy. For metrics like F1 or AUC there is no simple standard-error formula like the one on slide 10. The paired bootstrap gets the uncertainty by simulation instead.
 
-This basic case bootstrap assumes observations are exchangeable. If several rows belong to the same patient or user, resample whole groups. For time series, use a time-aware block method rather than shuffling individual rows. Bootstrap intervals complement effect sizes; they do not repair a biased test set or a model selected on that same test set.
--->
+Step 1: build a new test set of the same size by drawing examples from the real one at random, with replacement, so some examples appear twice and some not at all. Each drawn example carries its true label and both models' predictions together; that pairing is what keeps the comparison fair, just as in McNemar's test.
 
----
-glowSeed: 5552
----
+Step 2: compute the metric for both models on this resampled test set and record the difference, B minus A, so positive means B is better, as everywhere else in the deck.
 
-# Choosing the Right Test
+Step 3: repeat thousands of times. The histogram shows how much the gap moves from one plausible test set to another. It is the same idea as the eight different test sets earlier in the deck: we cannot collect more test sets, so we treat the one we have as a stand-in for the population and draw new ones from it.
 
-<div class="space-y-3 mt-4 text-sm">
-<div v-click class="grid grid-cols-[1fr_3rem_1fr] items-center gap-2">
-<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-teal-300">One test set, right/wrong labels</span><div class="opacity-80 text-xs mt-1">Two classifiers scored on the same examples</div></div>
-<svg viewBox="0 0 48 24" class="w-full" aria-hidden="true"><path d="M2 12H38M30 4l10 8-10 8" fill="none" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<div border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3><span class="font-bold text-teal-200">McNemar's test</span><div class="opacity-80 text-xs mt-1">Exact binomial when disagreements are few (&lt; 25)</div></div>
-</div>
-<div v-click class="grid grid-cols-[1fr_3rem_1fr] items-center gap-2">
-<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-blue-300">One test set, continuous scores</span><div class="opacity-80 text-xs mt-1">Per-example loss, squared error, log-loss</div></div>
-<svg viewBox="0 0 48 24" class="w-full" aria-hidden="true"><path d="M2 12H38M30 4l10 8-10 8" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<div border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3><span class="font-bold text-blue-200">Paired t-test, Wilcoxon, or paired bootstrap</span><div class="opacity-80 text-xs mt-1">Bootstrap for AUC, F1 and other non-additive metrics</div></div>
-</div>
-<div v-click class="grid grid-cols-[1fr_3rem_1fr] items-center gap-2">
-<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-violet-300">Scores from repeated CV</span><div class="opacity-80 text-xs mt-1">Shared splits, overlapping training sets</div></div>
-<svg viewBox="0 0 48 24" class="w-full" aria-hidden="true"><path d="M2 12H38M30 4l10 8-10 8" fill="none" stroke="#a78bfa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<div border="2 solid violet-800" bg="violet-800/20" rounded-lg px-4 py-3><span class="font-bold text-violet-200">Corrected resampled t-test or 5×2cv</span><div class="opacity-80 text-xs mt-1">Not the plain paired t-test on fold scores</div></div>
-</div>
-<div v-click class="grid grid-cols-[1fr_3rem_1fr] items-center gap-2">
-<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3><span class="font-bold text-amber-300">Many datasets, one score each</span><div class="opacity-80 text-xs mt-1">Does model A win across problems?</div></div>
-<svg viewBox="0 0 48 24" class="w-full" aria-hidden="true"><path d="M2 12H38M30 4l10 8-10 8" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-<div border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-3><span class="font-bold text-amber-200">Wilcoxon signed-rank (2 models) or Friedman (3+)</span><div class="opacity-80 text-xs mt-1">Treats each dataset as one observation</div></div>
-</div>
-</div>
+Step 4: the middle 95% of those gaps, from the 2.5th to the 97.5th percentile, is an approximate 95% confidence interval for the true gap. If the interval excludes zero, the gap is significant at about α = 0.05.
 
-<!--
-Use this slide as a lookup table. The test you choose should match what you actually measured and how the measurements depend on each other.
+The example uses the worked example's data: 500 test cases, 22 where only B is right and 8 where only A is right, for an observed accuracy gap of +2.8 points. Ten thousand resamples give an interval from +0.6 to +5.0 points. It excludes zero, matching McNemar's verdict, and it adds something McNemar does not: a range for how large the improvement plausibly is, which the next slide uses to separate statistical from practical significance.
 
-If you have right-or-wrong labels for two classifiers on one shared test set, McNemar's test is the standard choice, with the exact binomial version when there are fewer than about twenty-five disagreements. If you have continuous per-example quantities such as squared error, take the per-example differences and use a paired t-test when they look roughly normal, the Wilcoxon signed-rank test when they do not, or a paired bootstrap. The bootstrap is also the practical route for metrics like AUC and F1, which are not simple averages of per-example terms.
-
-For scores from repeated cross-validation, remember the earlier warning: the training sets overlap, so use a corrected resampled t-test or the 5×2cv test rather than treating folds as independent. Finally, when the unit of analysis is a dataset — one benchmark score per problem — use the Wilcoxon signed-rank test for two models or Friedman's test with a post-hoc procedure for three or more. These are the recommendations from Demšar's widely cited 2006 comparison paper. In every row the common thread is the same: pair the measurements, and make the test's independence assumption match reality.
--->
-
----
-glowSeed: 556
----
-
-# Statistical vs. Practical Significance
-
-<div class="grid grid-cols-3 gap-4 mt-6">
-<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4>
-<div class="font-bold text-teal-300 mb-2">Statistically significant</div>
-<div class="text-sm leading-relaxed opacity-90">The observed effect is unlikely under the null model — a claim about surprise, not size.</div>
-</div>
-<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4>
-<div class="font-bold text-blue-300 mb-2">Practically meaningful</div>
-<div class="text-sm leading-relaxed opacity-90">The effect is large enough to justify added complexity, cost, latency, or risk.</div>
-</div>
-<div v-click border="2 solid amber-800" bg="amber-800/20" rounded-lg p-4>
-<div class="font-bold text-amber-300 mb-2">Report both</div>
-<div class="text-sm leading-relaxed opacity-90">Give the effect size and an interval, not only a p-value.</div>
-</div>
-</div>
-
-
-<!--
-A p-value answers "how surprising is this gap if the models were truly equal," and nothing more — it does not tell you how big the gap is. With enough test examples, an utterly trivial improvement, say 0.1 percentage points of accuracy, can produce a tiny p-value and get flagged "statistically significant," because sample size shrinks the standard error in the denominator of any test statistic, making even minuscule effects detectable. This is the flip side of the small-sample caveat from earlier slides: small samples make real effects hard to detect; large samples make tiny, worthless effects easy to detect.
-
-So statistical significance and practical significance are separate questions that both need answering. Statistical significance asks whether the gap is probably real. Practical significance asks whether the gap is big enough to be worth acting on — worth the added training cost, the added inference latency, the added maintenance burden of a more complex model, or the risk of deploying something new. A model that is "significantly" better by 0.1% accuracy at ten times the inference cost is very likely not worth shipping. The professional habit that follows: never report a p-value alone; report the effect size (the actual measured gap) and, where possible, a confidence interval around it, so a reader can judge both questions — is this real, and does it matter — for themselves.
+Caveats: this basic bootstrap assumes test examples are independent. If several rows belong to the same patient or user, resample whole groups; for time series, resample contiguous blocks. A bootstrap interval cannot repair a biased test set or a model that was selected using the same test set.
 -->
 
 ---
@@ -994,45 +1086,11 @@ glowSeed: 5561
 </div>
 
 <!--
-Here is the practical summary of the last two slides in one picture. Each row is an observed accuracy gap with its 95% confidence interval. The dashed white line is zero, and the shaded teal band is a threshold you choose in advance: the smallest gap that would justify switching models, which I have set at one point for illustration.
+Statistical significance asks whether a gap is probably real; practical significance asks whether it is big enough to be worth acting on, given the extra cost, latency, or risk of switching models. A p-value answers only the first question, and with a large enough test set even a trivial gap becomes significant. An interval answers both, as this picture shows. Each row is an observed accuracy gap with its 95% confidence interval. The dashed white line is zero, and the shaded teal band is a threshold you choose in advance: the smallest gap that would justify switching models, which I have set at one point for illustration.
 
 Reveal the rows one at a time. The amber interval crosses zero but also extends well into the meaningful band — the data cannot tell us whether the models are equal or whether B is meaningfully better; this is a power problem, not a verdict, and the fix is more data. The blue interval excludes zero, so it is statistically significant, but even its upper end stays below the meaningful threshold; this is the classic large-test-set outcome where a real but trivial gain is not worth shipping. The teal interval excludes zero and lies inside the band, the only case where both kinds of significance agree.
 
 The violet interval is the subtle one. It is not significant, yet it is not 'no evidence' either: its narrow width, wholly inside plus-or-minus half a point, positively supports the claim that any difference is too small to matter. Absence of significance with a wide interval is ambiguity; with a tight interval it is informative. Reporting the interval makes all four cases distinguishable, whereas a bare p-value would lump the amber and violet rows together.
--->
-
----
-glowSeed: 5571
----
-
-# The Multiple-Comparisons Trap
-
-<div class="grid grid-cols-2 gap-8 items-start">
-<div>
-<div class="mt-1" style="font-size: .85em" border="2 solid red-800" bg="red-800/20" rounded-lg px-4 py-2>
-
-$$
-\Pr(\text{≥1 false win})=1-(1-\alpha)^m
-$$
-
-</div>
-<div class="space-y-2 mt-3">
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2><span class="font-bold text-amber-300">20 comparisons</span><span class="text-sm opacity-85"> — a 64% chance that at least one "significant" win is pure luck.</span></div>
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2><span class="font-bold text-teal-300">Bonferroni</span><span class="text-sm opacity-85"> — test each at α/m. Simple and safe, but conservative.</span></div>
-<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2><span class="font-bold text-blue-300">Holm</span><span class="text-sm opacity-85"> — step-down version with the same guarantee and more power; prefer it.</span></div>
-</div>
-</div>
-<div style="height: 350px">
-<FamilywiseError :step="$clicks" />
-</div>
-</div>
-
-<!--
-Every test run at α = 0.05 has a one-in-twenty chance of a false positive when nothing is going on. Run m independent tests and the probability that at least one is a false positive is one minus 0.95 to the m. At m = 20 that is already 64%, and by m = 50 it is over 90% — the red curve. This is what happens when someone trains twenty hyperparameter configurations or compares against twenty baselines or reports twenty metrics, and then publishes the one comparison that cleared p < 0.05.
-
-The classic fix is the Bonferroni correction: require p < α/m for each individual test. That keeps the family-wise error rate at or just under α regardless of m, shown by the flat teal curve near 5%. The cost is lower power, since each individual test is held to a much stricter standard. The Holm step-down procedure gives the same family-wise guarantee but is uniformly more powerful: sort the p-values, compare the smallest to α/m, the next to α/(m−1), and so on, stopping at the first failure. There is no reason to prefer plain Bonferroni when Holm is available.
-
-Note that independence is not required for either correction, which is what makes them safe defaults. A complementary strategy is procedural rather than statistical: decide the comparisons before looking at results, and keep a final test set you touch once.
 -->
 
 ---
@@ -1069,62 +1127,54 @@ Finally, do not read a non-significant result as proof of equality. A wide inter
 -->
 
 ---
-glowSeed: 557
----
-
-# Model Comparison Checklist
-
-<div class="grid grid-cols-2 gap-4 mt-6">
-<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4>
-<div class="font-bold text-teal-300 mb-2">Pair observations</div>
-<div class="text-sm leading-relaxed opacity-90">Exploit shared test examples or shared resampling splits, and preserve groups or time structure.</div>
-</div>
-<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4>
-<div class="font-bold text-blue-300 mb-2">Quantify uncertainty</div>
-<div class="text-sm leading-relaxed opacity-90">Report a p-value or confidence interval, not just two point estimates.</div>
-</div>
-<div v-click border="2 solid amber-800" bg="amber-800/20" rounded-lg p-4>
-<div class="font-bold text-amber-300 mb-2">Control multiplicity</div>
-<div class="text-sm leading-relaxed opacity-90">Do not cherry-pick one winner from many tested models or metrics.</div>
-</div>
-<div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg p-4>
-<div class="font-bold text-violet-300 mb-2">Judge value</div>
-<div class="text-sm leading-relaxed opacity-90">Weigh the effect size against deployment cost and risk.</div>
-</div>
-</div>
-
-
-<!--
-Turn the whole deck into a checklist before claiming one model beats another. Pair observations whenever possible: use McNemar's test for per-example correctness on a shared test set, or use paired resampling with a method that accounts for dependence when comparing cross-validation results. Quantify uncertainty rather than judging two point estimates by eye.
-
-Control multiplicity: if you evaluate 20 candidate models or 20 different metrics against a baseline and report only the one comparison that came out significant, you have effectively run 20 tests and cherry-picked the lucky one — at the conventional 0.05 threshold, roughly one comparison in twenty will look "significant" by pure chance even if nothing is actually different. This is directly analogous to repeatedly touching the test set during model development, a leakage-adjacent failure the next deck covers in depth. Finally, judge value: even a real, statistically defensible gap has to be weighed against what it costs to capture — more parameters, more inference time, more engineering complexity — before it justifies replacing a simpler, working model.
--->
-
----
 glowSeed: 558
 ---
 
-# Trustworthy Comparisons
+# Summary: Which Tool When?
 
-<div class="mt-8"><div class="grid grid-cols-3 gap-4 mt-6">
-<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg p-4>
-<div class="font-bold text-teal-300 mb-2">Scores vary</div>
-<div class="text-sm leading-relaxed opacity-90">One number is one sample from a distribution.</div>
-</div>
-<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg p-4>
-<div class="font-bold text-blue-300 mb-2">Pair wisely</div>
-<div class="text-sm leading-relaxed opacity-90">Use shared examples or splits and a method that matches their dependence.</div>
-</div>
-<div v-click border="2 solid amber-800" bg="amber-800/20" rounded-lg p-4>
-<div class="font-bold text-amber-300 mb-2">Size matters</div>
-<div class="text-sm leading-relaxed opacity-90">Practical significance ≠ statistical significance.</div>
-</div>
-</div></div>
+<div class="grid grid-cols-3 gap-4 mt-4" style="font-size: .9em">
+<div v-click border="2 solid violet-800" bg="violet-800/20" rounded-lg px-4 py-3>
+<div class="font-bold text-violet-300">How sure is one model's accuracy?</div>
+<div class="text-xs opacity-80 mt-1">95% confidence interval</div>
 
-<div v-click class="mt-10 text-center text-lg" border="2 solid white/10" bg="white/5" rounded-lg px-6 py-4>Next: common evaluation failures — leakage and class imbalance.</div>
+$$
+\hat p \pm 1.96\sqrt{\frac{\hat p(1-\hat p)}{n}}
+$$
+
+<div class="text-xs opacity-85">n = number of <span class="font-bold">test</span> examples. Example: 89% on 200 test examples → 89% ± 4.3 pts.</div>
+</div>
+<div v-click border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
+<div class="font-bold text-teal-300">Is B more accurate than A?</div>
+<div class="text-xs opacity-80 mt-1">McNemar's test: right/wrong predictions on the same test set</div>
+
+$$
+\chi^2=\frac{(|n_{01}-n_{10}|-1)^2}{n_{01}+n_{10}}
+$$
+
+<div class="text-xs opacity-85">Reject H₀ if χ² &gt; 3.84. Use the exact binomial test if there are fewer than ~25 disagreements.</div>
+</div>
+<div v-click border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3>
+<div class="font-bold text-blue-300">Any other metric, or how much better?</div>
+<div class="text-xs opacity-80 mt-1">Paired bootstrap: F1, AUC, losses, or a range for the gap</div>
+<div class="text-xs opacity-85 mt-3 space-y-1">
+<div>1 · Resample the test set with replacement</div>
+<div>2 · Gap = B's metric − A's metric</div>
+<div>3 · Repeat 10,000 times</div>
+<div>4 · 95% interval excludes 0 → significant</div>
+</div>
+</div>
+</div>
+
+<div v-click class="mt-6 text-center text-lg" border="2 solid white/10" bg="white/5" rounded-lg px-6 py-3>Next: common evaluation failures — leakage and class imbalance.</div>
 
 <!--
-A trustworthy comparison recognizes that a test score is a sample rather than a fixed truth, preserves pairing when the models face the same examples or splits, and uses an uncertainty method that matches the dependence in the data. It also separates evidence that a gap is real from the decision that the gap is large enough to justify deployment.
+Three questions, three tools.
 
-This closes the rigor thread of the module: we now have precise metrics (accuracy, precision, recall, F1, ROC-AUC), a diagnostic tool for reading exactly how a model fails (the confusion matrix), and a way to decide whether an observed difference between two models is real. None of these tools mean anything, though, if the evaluation itself was set up incorrectly — if the test set was contaminated by information it shouldn't have had, or if the metric quietly hid a rare class's failure. The next deck covers exactly those setup failures: data leakage and class imbalance, worked through concrete, end-to-end examples of how each one silently inflates a model's apparent performance.
+First, how sure are we of a single model's accuracy? Accuracy is an average of right/wrong outcomes, so its standard error is √(p̂(1 − p̂)/n), and a 95% interval is p̂ ± 1.96 standard errors. The n here is the number of test examples the accuracy was measured on, not the training-set size: the formula describes how noisy the test score is. For 89% accuracy on 200 test examples, the standard error is about 2.2 points, so the interval is roughly 85% to 93%.
+
+Second, is model B more accurate than model A? When both models are scored right or wrong on the same test examples, use McNemar's test. Only the disagreements matter: n₀₁ cases only B gets right and n₁₀ cases only A gets right. Reject H₀ if χ² exceeds 3.84, the 5% critical value. With few disagreements, under about 25, use the exact binomial test instead.
+
+Third, for any other metric, such as F1, AUC, or a loss, or when you want to know how much better B is and not just whether it is better, use the paired bootstrap. Resample the test set with replacement, recompute the gap B minus A each time, and read the middle 95% of the gaps. If that interval excludes zero, the difference is significant; where it sits tells you whether the difference is large enough to matter.
+
+None of these tools help if the evaluation itself is set up wrong. The next deck covers exactly those setup failures: data leakage and class imbalance.
 -->

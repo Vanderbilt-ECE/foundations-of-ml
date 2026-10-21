@@ -947,28 +947,74 @@ Next step beyond this unit: SHAP values explain individual predictions, and for 
 glowSeed: 667
 ---
 
-# Stacking and Blending: Learn the Combination
+# The Meta-Model: Combining the Base Models
+
+<div class="text-sm opacity-85 mt-1">Stacking and blending fit a second model on the base models' held-out predictions. Stacking gets those predictions from 5-fold cross-validation, blending from one 20% holdout.</div>
+
+<div class="grid grid-cols-[2fr_3fr] gap-8 items-start mt-3">
+<div>
+<div class="font-bold text-violet-300 mb-1">What it is</div>
+<div class="text-sm">
+
+| Forest | Booster | Linear | Meta-model | True |
+|---|---|---|---|---|
+| 280 | 310 | 240 | 301 | 300 |
+| 150 | 190 | 200 | 178 | 170 |
+| 410 | 380 | 330 | 389 | 400 |
+
+</div>
+<div class="text-sm opacity-85 mt-2">Inputs: base predictions. Label: true target. Illustrative numbers, weights 0.3 / 0.7 / 0.</div>
+<div v-click class="mt-3 text-sm" border="2 solid violet-800" bg="violet-800/20" rounded-lg px-4 py-2>
+<span class="font-bold text-violet-300">In this deck</span> — a non-negative linear regression. It learned weights 0.68 boosting, 0.35 forest, 0.01 linear.
+</div>
+</div>
+<div class="space-y-3">
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<span class="font-bold text-teal-300">Linear or ridge regression</span>
+<span class="text-sm opacity-85"> — A weighted sum of the base predictions. The usual default for regression; ridge or non-negative weights steady it when the inputs are highly correlated.</span>
+</div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<span class="font-bold text-amber-300">Logistic regression</span>
+<span class="text-sm opacity-85"> — The same idea for classification. Its inputs are the base models' predicted probabilities.</span>
+</div>
+<div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<span class="font-bold text-red-300">Boosted trees or a small neural network</span>
+<span class="text-sm opacity-85"> — Can learn when to trust which model. Needs more data and overfits easily, because there are few inputs and they are highly correlated.</span>
+</div>
+</div>
+</div>
+
+<!--
+The meta-model is the second model in stacking and blending. The base models, here a random forest, the boosted model and a linear regression, each make a prediction for every training row, using only predictions made on rows that model did not train on. The meta-model is trained on a table where each row is a training example, the columns are those predictions, and the label is the true target.
+
+The left table shows the idea with made-up numbers. The first three columns are base predictions, the fourth is what a meta-model with weights 0.3, 0.7 and 0 outputs, and the last is the true price. In the first row, 0.3 times 280 plus 0.7 times 310 is 301, against a true price of 300.
+
+Stacking and blending differ only in where the held-out predictions come from. Stacking uses 5-fold cross-validation: each base model predicts each row using a copy trained on the other four folds, and the base models are refit on all rows afterward for new data. Blending holds out 20% of the training rows, fits the base models on the other 80%, and fits the meta-model on the base models' predictions for the held-out 20%.
+
+Common meta-models. Linear regression is the default for regression: its coefficients are the weights, so you can read how much each base model counts. Non-negative weights or a ridge penalty keep the weights stable when two base models are almost the same. For classification, logistic regression on the predicted probabilities is the same idea. A boosted-tree or small neural-network meta-model can learn more complicated rules, such as trusting the forest in one region and the booster in another, but with a handful of correlated inputs it overfits easily and needs a lot of data. Start simple, and check that the stack beats both the best single base model and the plain average.
+
+In this deck the meta-model is a non-negative linear regression, and the next slide shows what it learned: weights of 0.68 on boosting, 0.35 on the forest and 0.01 on linear.
+-->
+
+---
+glowSeed: 668
+---
+
+# Does Stacking Help? California Housing
 
 <div class="grid grid-cols-[3fr_2fr] gap-8 items-start">
 <div>
-<div class="flex items-center gap-2 text-xs mb-3">
-<div class="flex-1 rounded-lg border-2 border-teal-800 bg-teal-800/20 px-3 py-2 text-center"><b>Base models</b><br>forest, booster, linear</div>
-<span class="opacity-60">→</span>
-<div class="flex-1 rounded-lg border-2 border-amber-800 bg-amber-800/20 px-3 py-2 text-center"><b>Predictions on rows they did not train on</b></div>
-<span class="opacity-60">→</span>
-<div class="flex-1 rounded-lg border-2 border-violet-800 bg-violet-800/20 px-3 py-2 text-center"><b>Meta-model</b><br>learns the weights</div>
-</div>
 <StackBars />
 <div class="text-xs opacity-70 mt-1 text-center">Test MSE on 2,000 held-out districts. Same 2,000 training rows; blending fits its base models on 1,600 of them.</div>
 </div>
 <div class="space-y-3 mt-2">
 <div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-teal-300">Learn the weights</span>
+<span class="font-bold text-teal-300">Learned weights beat equal weights</span>
 <span class="text-sm opacity-85"> — The meta-model gave boosting 0.68, the forest 0.35 and linear 0.01. A plain average, 0.297, trusts all three equally.</span>
 </div>
 <div v-click border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-amber-300">Only on rows the bases never saw</span>
-<span class="text-sm opacity-85"> — Stacking uses 5-fold out-of-fold predictions. Blending holds out 20% of the rows, so the bases train on less: 0.283.</span>
+<span class="font-bold text-pink-300">Blending trains on less</span>
+<span class="text-sm opacity-85"> — Its base models see 1,600 rows and its meta-model 400. Result: 0.283, worse than boosting alone.</span>
 </div>
 <div v-click border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-3>
 <span class="font-bold text-amber-300">Not a free win</span>
@@ -978,15 +1024,13 @@ glowSeed: 667
 </div>
 
 <!--
-Bagging averages with equal weights; boosting adds members in sequence. Stacking asks a different question: given several different models, how much should each one count? It trains a second, small model, the meta-model, to answer it.
+Same setup as the scoreboard: a random forest, the early-stopped boosted model, and a linear regression, all fit on the same 2,000 California rows and scored on the same 2,000 held-out districts.
 
-The recipe. Fit several base models of different kinds: here a random forest, the early-stopped boosted model from the scoreboard, and a linear regression. Collect each base model's predictions on rows it was not trained on. Those predictions become the input columns, and the true target is the label, for a meta-model, here a non-negative linear regression, so its coefficients are weights on the base models.
+The three base models score 0.481, 0.310 and 0.269. A plain average of the three gets 0.297: the weak linear model drags it above boosting alone. Stacking learns to give the linear model almost no weight, 0.01, puts 0.68 on boosting and 0.35 on the forest, and reaches 0.269, a tie with boosting by itself. Here, stacking mostly protects against a bad average and does not beat the best base model.
 
-Why rows they did not train on. A base model's predictions on its own training rows are too good, especially for a forest or a booster that nearly memorizes them. A meta-model fit on those predictions would learn to trust the most overfit model. Stacking gets honest predictions with cross-validation: split the training rows into 5 folds, fit each base model on 4 folds, predict the fifth, and repeat. Blending is the simpler version: set aside a slice of the training data, fit the base models on the rest, and fit the meta-model on the slice. The cost is that every model sees less data. Here the bases train on 1,600 rows and the meta-model on 400, and blending lands at 0.283, worse than boosting alone at 0.269.
+Blending lands at 0.283. Its base models trained on 1,600 rows and the meta-model on the other 400, so every piece is weaker than in stacking, and the result is worse than boosting alone.
 
-Read the bars. The three base models score 0.481, 0.310 and 0.269. A plain average of the three gets 0.297: the weak linear model drags it above boosting alone. Stacking learns to give the linear model almost no weight, 0.01, and puts 0.68 on boosting and 0.35 on the forest, and reaches 0.269, a tie with boosting by itself. So here stacking mostly protects against a bad average and does not beat the best base model.
-
-That is typical. Stacking gains come when the base models make different mistakes and are similarly accurate, and the forest and the booster are both tree ensembles, so their errors overlap a lot. Try models of different families, such as a nearest-neighbor model or a neural network. The costs are more training time and a pipeline that is harder to explain, so many practitioners start with one well-tuned boosted model and stack only when the last bit of accuracy matters.
+That is typical. Stacking gains come when the base models make different mistakes and are similarly accurate. The forest and the booster are both tree ensembles, so their errors overlap a lot. Models from other families, such as a nearest-neighbor model or a neural network, would add more diversity. The costs are more training time and a pipeline that is harder to explain, so many practitioners start with one well-tuned boosted model and stack only when the last bit of accuracy matters.
 -->
 
 ---

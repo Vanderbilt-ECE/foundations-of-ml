@@ -72,23 +72,13 @@ onMounted(() => {
       yaxis: axisStyle('n₁₀', '#60a5fa'),
       zaxis: { ...axisStyle('χ²', '#fbbf24'), range: [0, zMax], dtick: 10 },
       aspectratio: { x: 1, y: 1, z: 0.7 },
-      camera: { eye: { x: 1.45, y: -1.45, z: 0.7 } },
+      camera: { eye: { x: 1.45, y: -1.45, z: 0.7 }, center: { x: 0, y: 0, z: -0.12 } },
+      // keep the front corner clear of the slide's bottom edge
+      domain: { x: [0, 1], y: [0.08, 1] },
     },
   }
 
-  // Critical value for alpha = 0.05 (1.96^2): the surface above this plane is "reject H0"
-  const plane = {
-    type: 'surface',
-    x: [0, N],
-    y: [0, N],
-    z: [[3.84, 3.84], [3.84, 3.84]],
-    showscale: false,
-    opacity: 0.45,
-    colorscale: [[0, '#fbbf24'], [1, '#fbbf24']],
-    hoverinfo: 'skip',
-  }
-
-  Plotly.newPlot(el.value!, [surface, diag, plane] as any, layout as any, {
+  Plotly.newPlot(el.value!, [surface, diag] as any, layout as any, {
     responsive: true,
     displayModeBar: false,
   })
