@@ -1,1 +1,5 @@
 @import '../../../slidev_template/style.css';
+
+/* Fade/slide an element in place: its space is reserved from the start, so nothing shifts when it appears. */
+.reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.shown { opacity: 1; transform: none; }

@@ -68,7 +68,7 @@ Two consequences: there is <b>no center</b> to summarize a cluster, and a point 
 </div>
 
 <script setup>
-import moons from './data/moons.json'
+import moons from '@data/moons.json'
 </script>
 
 <!--
@@ -109,9 +109,9 @@ clicks: 3
 <div class="mt-5 text-sm opacity-80">Then: three real datasets, and how to compare clusterings when there is no test accuracy.</div>
 
 <script setup>
-import grid from './data/linkgrid.json'
-import gallery from './data/gallery.json'
-import varied from './data/varied.json'
+import grid from '@data/linkgrid.json'
+import gallery from '@data/gallery.json'
+import varied from '@data/varied.json'
 </script>
 
 <!--
@@ -777,7 +777,7 @@ The traits that differ most between the seven groups: <b>{{ zooKey }}</b>. Block
 </div>
 
 <script setup>
-import zoo from './data/zoo.json'
+import zoo from '@data/zoo.json'
 const zooKey = zoo.keyTraits.map(j => zoo.traits[j]).join(', ')
 </script>
 
@@ -815,7 +815,7 @@ glowSeed: 775
 </div>
 
 <script setup>
-import quakes from './data/quakes.json'
+import quakes from '@data/quakes.json'
 </script>
 
 <!--
