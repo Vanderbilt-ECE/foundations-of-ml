@@ -27,7 +27,7 @@ function pairIn(label: number) {
   const my = idx.reduce((t, i) => t + pts[i][1], 0) / idx.length
   const a = idx.reduce((m, i) => (Math.hypot(pts[i][0] - mx, pts[i][1] - my) < Math.hypot(pts[m][0] - mx, pts[m][1] - my) ? i : m), idx[0])
   const b = idx.filter(i => i !== a).reduce((m, i) => (dist(a, i) < dist(a, m) ? i : m), idx.find(i => i !== a)!)
-  return { a, b, d: dist(a, b), m: Math.max(core[a], core[b], dist(a, b)) }
+  return { a, b, d: dist(a, b), ca: core[a], cb: core[b], m: Math.max(core[a], core[b], dist(a, b)) }
 }
 const pairs = [pairIn(0), pairIn(2)]
 const fmt = (v: number) => v.toFixed(2)
@@ -49,23 +49,25 @@ const fmt = (v: number) => v.toFixed(2)
       </g>
     </svg>
     <div class="space-y-3 text-left">
-      <slot />
+      <div class="fade" :style="{ opacity: s >= 2 ? 1 : 0 }"><slot /></div>
       <div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3 class="text-sm">
         <b>Core distance</b> of a point: how far to its {{ k }}th-nearest neighbor.
         <span class="text-teal-300">Small in dense blobs</span>, <span class="text-blue-300">large in the sparse disk</span>.
       </div>
       <div class="fade" :style="{ opacity: s >= 2 ? 1 : 0 }">
         <table class="pt">
-          <thead><tr><th /><th>distance</th><th>mutual reach.</th></tr></thead>
+          <thead><tr><th /><th>actual d</th><th>core(a)</th><th>core(b)</th><th>mutual reach.</th></tr></thead>
           <tbody>
             <tr v-for="(pr, k) in pairs" :key="k">
               <td class="text-left">{{ k === 0 ? 'tight-blob pair' : 'disk pair' }}</td>
-              <td class="font-mono">{{ fmt(pr.d) }}</td>
+              <td class="font-mono" :class="{ 'text-amber-300 font-bold': pr.m === pr.d }">{{ fmt(pr.d) }}</td>
+              <td class="font-mono" :class="{ 'text-amber-300 font-bold': pr.m === pr.ca }">{{ fmt(pr.ca) }}</td>
+              <td class="font-mono" :class="{ 'text-amber-300 font-bold': pr.m === pr.cb }">{{ fmt(pr.cb) }}</td>
               <td class="font-mono text-amber-300 font-bold">{{ fmt(pr.m) }}</td>
             </tr>
           </tbody>
         </table>
-        <div class="text-xs opacity-80 mt-2">Inside a dense blob the two numbers are close. In the sparse disk, distances are stretched up to the core distance, so sparse points look farther apart than they are.</div>
+        <div class="text-xs opacity-80 mt-2">Take the <b>largest</b> of the three numbers (highlighted). Two points can never be closer than either point's own circle radius. Dense blob: the actual distance wins, so nothing changes. Sparse disk: a core distance wins, so the pair is pushed apart.</div>
       </div>
     </div>
   </div>
