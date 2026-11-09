@@ -29,10 +29,12 @@ const known: Mix = (() => {
       <GmmPlot :pts="d.pts" :mix="known" mode="lab" :lab="d.truth" :levels="[1, 2]" :w="330" :h="230" :r="2" label="Points colored by their true component, with each group's fitted ellipse" />
     </div>
     <svg viewBox="0 0 90 200" class="w-22" role="img" aria-label="Two arrows forming a loop between the panels">
-      <path d="M10,70 C40,20 50,20 80,70" class="flow" :class="{ on: step >= 2 }" :style="{ fill: 'none', stroke: '#fbbf24', strokeWidth: 3 }" />
-      <path d="M72,62 L80,70 L70,74" :style="{ fill: 'none', stroke: '#fbbf24', strokeWidth: 3, opacity: step >= 2 ? 1 : 0.25 }" />
-      <path d="M80,130 C50,180 40,180 10,130" class="flow" :class="{ on: step >= 2 }" :style="{ fill: 'none', stroke: '#2dd4bf', strokeWidth: 3 }" />
-      <path d="M18,138 L10,130 L20,126" :style="{ fill: 'none', stroke: '#2dd4bf', strokeWidth: 3, opacity: step >= 2 ? 1 : 0.25 }" />
+      <defs>
+        <marker id="ce-head-amber" viewBox="0 0 8 8" refX="5" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#fbbf24" /></marker>
+        <marker id="ce-head-teal" viewBox="0 0 8 8" refX="5" refY="4" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2dd4bf" /></marker>
+      </defs>
+      <path d="M10,70 C40,20 50,20 80,70" class="flow" :class="{ on: step >= 2 }" marker-end="url(#ce-head-amber)" :style="{ fill: 'none', stroke: '#fbbf24', strokeWidth: 3 }" />
+      <path d="M80,130 C50,180 40,180 10,130" class="flow" :class="{ on: step >= 2 }" marker-end="url(#ce-head-teal)" :style="{ fill: 'none', stroke: '#2dd4bf', strokeWidth: 3 }" />
       <text x="45" y="104" text-anchor="middle" :style="{ fill: '#e2e8f0', fontSize: '13px', fontWeight: 700, opacity: step >= 2 ? 1 : 0 }">EM</text>
     </svg>
     <div class="text-left reveal" :class="{ shown: step >= 1 }" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-3 py-2>

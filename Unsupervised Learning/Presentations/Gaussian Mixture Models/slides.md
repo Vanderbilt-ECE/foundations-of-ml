@@ -129,9 +129,7 @@ class: text-center
 glowSeed: 773
 ---
 
-# Part 1 · One Cluster, One Gaussian
-
-<div class="text-lg opacity-80 mt-3">A center is a point. A Gaussian is a center plus a shape.</div>
+# A Single Gaussian
 
 <!--
 Part one: the Gaussian, the shape we will give each cluster. Most of this is review from the probability lecture, but we need it in two dimensions and we need to read the covariance matrix as geometry.
@@ -291,9 +289,7 @@ class: text-center
 glowSeed: 778
 ---
 
-# Part 2 · Mixtures and Responsibilities
-
-<div class="text-lg opacity-80 mt-3">A story for how the data was made, and Bayes' rule to read it backwards</div>
+# Mixtures and Responsibilities
 
 <!--
 Part two. One Gaussian describes one cluster. A dataset with several clusters needs several Gaussians, combined in a specific way: a mixture.
@@ -369,6 +365,37 @@ Notice where the peaks overlap, between −2 and 1.5: a point there could plausi
 -->
 
 ---
+glowSeed: 7805
+clicks: 3
+---
+
+# Membership Is Bayes' Rule
+
+<BayesMembership :step="$clicks">
+<div border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 class="absolute bottom-5 left-14 w-[40%] text-left" style="font-size: .75em">
+
+$$
+\underbrace{P(k\mid x)}_{\text{membership}}=\frac{\overbrace{\pi_k}^{\text{prior}}\ \overbrace{\mathcal N(x\mid\mu_k,\sigma_k)}^{\text{likelihood}}}{\sum_{j=1}^{3}\pi_j\,\mathcal N(x\mid\mu_j,\sigma_j)}
+$$
+
+</div>
+</BayesMembership>
+
+<!--
+Now the key idea of the lecture: the probability that a point belongs to a cluster is Bayes' rule, the same computation as the Naive Bayes posterior. The question is: given that I see x, which cluster made it?
+
+The picture is the mixture from the last slide. Drag the probe anywhere; it starts at x = −0.5, where the left two clusters overlap.
+
+[click] Prior. Before looking at x at all, the chance a point came from cluster k is its mixing weight: 0.3, 0.5, 0.2. This is the wheel from the generative story.
+
+[click] Likelihood. The dashed curves are the plain Gaussians; the circles are their heights at x. This is how probable it is to draw exactly this x from each cluster. Cluster 3 is far away, so its height is essentially zero.
+
+[click] Multiply, for all three. The solid curves are the weighted ones from the previous slide, and the dots are prior × likelihood. A cluster needs both: common enough, and a good explanation of x. A rare cluster with a high likelihood can lose to a common one with a middling likelihood.
+
+[click] Normalize. These three scores are not probabilities yet, so divide each by their sum. The three numbers now add to 1; these are the responsibilities γ. Drag the probe toward −2 or 5 and one cluster takes almost everything; leave it in an overlap and the share is split. The next slide plots this as a function of x, for two clusters.
+-->
+
+---
 glowSeed: 781
 ---
 
@@ -428,64 +455,9 @@ Running the story backwards for one point: given x, which component produced it?
 
 The top panel draws the two products, π₁N₁ in teal and π₂N₂ in amber, for components at 0 and 4 with σ = 1 and equal weights. Drag the vertical line across (or click anywhere on the plot). At any x the responsibility is just the teal height's share of the two heights. The bottom panel stacks γ₁ and γ₂: near 0, almost all teal; near 4, almost all amber; and in between a smooth S-shaped hand-off, crossing 50/50 at the midpoint, 2.
 
-[click] The probe jumps to x = 1.5, next slide's worked example (it stays draggable). Teal height 0.0648, amber 0.0088, so γ₁ = 0.88 and γ₂ = 0.12. The point is closer to component 1, but the model keeps a 12% doubt.
+[click] The probe jumps to x = 1.5 (it stays draggable). Teal height 0.0648, amber 0.0088, so γ₁ = 0.88 and γ₂ = 0.12. The point is closer to component 1, but the model keeps a 12% doubt.
 
 [click] Now change only the prior: π₁ = 0.8. Every teal height scales up, so the hand-off moves right: the 50/50 point is now at 2.35, and the same x = 1.5 gets γ₁ = 0.97. If component 1 is more common overall, an ambiguous point is more likely to be one of its points. k-means has no notion of this; a GMM learns the weights from data.
--->
-
----
-glowSeed: 783
----
-
-# Worked Example: One Responsibility by Hand
-
-<div class="grid grid-cols-2 gap-7 mt-3 items-center">
-<div class="text-left">
-
-<div border="2 solid white/10" bg="white/5" rounded-lg px-4 class="text-sm">
-
-Two 1D components: $\pi_1=\pi_2=0.5$, $\;\mathcal N(0,1)$ and $\mathcal N(4,1)$. Point $x=1.5$.
-
-</div>
-
-<div class="text-sm">
-
-<v-clicks>
-
-- $\mathcal N(1.5\mid 0,1)=\frac{1}{\sqrt{2\pi}}e^{-1.5^2/2}\approx0.1295$
-- $\mathcal N(1.5\mid 4,1)=\frac{1}{\sqrt{2\pi}}e^{-2.5^2/2}\approx0.0175$
-- prior × likelihood: $0.5(0.1295)=0.0648$ and $0.5(0.0175)=0.0088$
-- $\gamma_{1}=\dfrac{0.0648}{0.0648+0.0088}\approx0.880,\quad \gamma_{2}\approx0.120$
-
-</v-clicks>
-
-</div>
-
-</div>
-
-```python
-import numpy as np
-from scipy.stats import norm
-
-x = 1.5
-pi = np.array([0.5, 0.5])
-lik = norm.pdf(x, loc=[0, 4], scale=1)
-unnorm = pi * lik      # [0.0648 0.0088]
-gamma = unnorm / unnorm.sum()
-print(gamma.round(3))  # [0.88 0.12]
-```
-
-</div>
-
-<!--
-The same numbers by hand, the computation the E-step does for every point.
-
-[click] Density of x = 1.5 under component 1: it is 1.5 standard deviations from 0, so e^(−1.125)/√(2π) ≈ 0.1295.
-[click] Under component 2: 2.5 standard deviations from 4, deeper in the tail, ≈ 0.0175.
-[click] Multiply by the priors, 0.5 each: 0.0648 and 0.0088. Equal priors don't change the ratio here.
-[click] Normalize: γ₁ = 0.0648 / 0.0736 ≈ 0.880, γ₂ ≈ 0.120.
-
-At the midpoint x = 2, symmetry would give exactly 0.5 and 0.5. Practical note: in code, real implementations work with log densities and the log-sum-exp trick, because in high dimensions the densities themselves underflow to zero.
 -->
 
 ---
@@ -639,6 +611,35 @@ Left: if we knew which component produced each point, colors given, fitting is e
 -->
 
 ---
+glowSeed: 7885
+---
+
+# What Is the EM Algorithm?
+
+<div class="mt-6 text-left" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-6 py-4 style="font-size: 1.15em; line-height: 1.5">
+The <b class="text-teal-300">Expectation-Maximization (EM) algorithm</b> is an iterative optimization technique for estimating the parameters of a statistical model when some of the data is missing or hidden. In our Gaussian mixture model, the hidden piece is which Gaussian produced each point, and the parameters are the weights, means and covariances of the Gaussians.
+</div>
+
+<div class="grid grid-cols-2 gap-4 mt-5 text-left">
+<div border="2 solid teal-800" bg="teal-800/20" rounded-lg px-5 py-3>
+<div class="font-bold text-teal-300 mb-1">E-step (Expectation)</div>
+Calculate the expected value of the log-likelihood function, given the current parameter estimates.
+</div>
+<div border="2 solid amber-800" bg="amber-800/20" rounded-lg px-5 py-3>
+<div class="font-bold text-amber-300 mb-1">M-step (Maximization)</div>
+Update the parameter estimates to maximize the expected log-likelihood calculated in the E-step.
+</div>
+</div>
+
+<!--
+A plain-language definition before we write the steps down. EM is an iterative method for estimating a model's parameters when part of the data is missing or hidden. In our case the missing part is the label of each point, which Gaussian made it. If we knew the labels, fitting would be easy; if we knew the parameters, finding the labels would be easy; we know neither.
+
+So EM alternates. E step: calculate the expected value of the log-likelihood, given the current parameter estimates. For a GMM that expectation is taken over the hidden labels, which is why it comes down to the responsibilities. M step: update the parameter estimates to maximize that expected log-likelihood, which gives the weights, means and covariances. Repeat until the parameters stop changing. Each full round can only increase the likelihood, which is why it works, though it can settle in a local maximum. We will see that later with restarts.
+
+EM is a general recipe for hidden-variable models; the GMM is its most famous example.
+-->
+
+---
 glowSeed: 789
 clicks: 2
 ---
@@ -653,7 +654,7 @@ $$
 \gamma_{ik}\leftarrow\frac{\pi_k\,\mathcal N(\mathbf x_i\mid\boldsymbol\mu_k,\Sigma_k)}{\sum_j\pi_j\,\mathcal N(\mathbf x_i\mid\boldsymbol\mu_j,\Sigma_j)}
 $$
 
-<div class="text-sm opacity-85">Parameters fixed. Bayes' rule for every point and component: an n × K table.</div>
+<div class="text-sm opacity-85">γᵢₖ is the probability that sample i belongs to Gaussian k.</div>
 </div>
 <div class="reveal" :class="{ shown: $clicks >= 1 }" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-2>
 <div class="font-bold text-amber-300">M-step · weighted refits</div>
