@@ -5,6 +5,9 @@ dist/
 .playwright-cli/
 test-results/
 
+# Student records must always remain local
+/grades/
+
 # Video files
 *.mp4
 
