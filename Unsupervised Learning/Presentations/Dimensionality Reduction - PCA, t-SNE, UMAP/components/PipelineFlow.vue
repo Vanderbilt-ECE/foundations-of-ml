@@ -44,7 +44,7 @@ const { isPrintMode } = useActive()
     <div class="grid grid-cols-6 gap-2 mt-3 items-end" style="height: 120px">
       <div v-for="([name, v, c], i) in BARS" :key="name" class="flex flex-col items-center justify-end h-full" @pointerenter="hot = i" @pointerleave="hot = null">
         <div class="font-mono text-sm mb-1" :style="{ color: c }">{{ v.toFixed(2) }}</div>
-        <div class="w-12 rounded-t bar" :class="{ grow: !isPrintMode }" :style="{ height: `${80 * v}px`, background: c, opacity: hot == null || hot === i ? 0.9 : 0.35 }" />
+        <div class="w-12 rounded-t bar" :class="{ rise: !isPrintMode }" :style="{ height: `${80 * v}px`, background: c, opacity: hot == null || hot === i ? 0.9 : 0.35 }" />
         <div class="text-xs mt-1 text-center leading-tight opacity-80" style="min-height: 2.2em">{{ name }}</div>
       </div>
     </div>
@@ -53,6 +53,6 @@ const { isPrintMode } = useActive()
 
 <style scoped>
 .bar { transition: opacity 0.2s; transform-origin: bottom; }
-.grow { animation: grow 0.9s ease both; }
-@keyframes grow { from { transform: scaleY(0); } to { transform: none; } }
+.rise { animation: rise 0.9s ease both; }
+@keyframes rise { from { transform: scaleY(0); } to { transform: none; } }
 </style>

@@ -50,7 +50,7 @@ function pick(e: PointerEvent) {
       </div>
       <div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3 class="font-mono text-sm space-y-1">
         <div class="text-amber-300">σᵢ = {{ row.sigma.toFixed(3) }}</div>
-        <div>2^H(Pᵢ) = {{ (2 ** H2).toFixed(1) }} <span class="opacity-60">≈ effective neighbors</span></div>
+        <div>effective neighbors = {{ (2 ** H2).toFixed(1) }}</div>
         <div class="opacity-80">largest p_j|i = {{ pmax.toFixed(3) }}</div>
       </div>
       <div class="text-xs opacity-70">Click a point in the tight cluster, then one in the diffuse cluster: same perplexity, very different σ.</div>

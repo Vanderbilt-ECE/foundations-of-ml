@@ -41,26 +41,73 @@ Every number on these slides comes from scripts/make_data.py in the deck folder,
 -->
 
 ---
-glowSeed: 741
-clicks: 2
+glowSeed: 7411
+clicks: 3
 ---
 
-# Where Gaussian Mixtures Left Off
+# Covariance Finds the Directions
 
-<PlaneFit :step="$clicks" />
+<PlaneFit :step="Math.max(0, $clicks - 1)">
+<div class="space-y-3 text-left text-sm">
+<div class="reveal" :class="{ shown: $clicks >= 1 }" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<b>1 · Center the data and compute its 3 × 3 covariance matrix</b>
+<div class="opacity-85 mt-1">It describes how the three measurements vary together, across the whole cloud.</div>
+</div>
+<div class="reveal" :class="{ shown: $clicks >= 2 }" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-3>
+<b>2 · Extract its eigenvectors and eigenvalues</b>
+<div class="opacity-85 mt-1">Three perpendicular directions. Each eigenvalue is the variance along its eigenvector.</div>
+<div class="flex gap-3 mt-2 font-bold"><span class="text-amber-300">PC1: 71.2%</span><span class="text-violet-300">PC2: 28.5%</span><span class="text-red-300">PC3: 0.3%</span></div>
+</div>
+<div class="reveal" :class="{ shown: $clicks >= 3 }" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-3>
+<b class="text-teal-300">3 · Keep the two largest eigenvalues' directions</b>
+<div class="opacity-85 mt-1">PC1 and PC2 span a plane through the data's mean. PC3 points out of that plane.</div>
+</div>
+</div>
+</PlaneFit>
 
-<div class="reveal text-sm mt-1" :class="{ shown: $clicks >= 2 }" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
-Three numbers per point, but PC1 and PC2 hold <b>99.7%</b> of the variance. Two coordinates lose almost nothing.
+<div class="reveal text-sm opacity-70 mt-2" :class="{ shown: $clicks >= 2 }">Axes pass through the mean; their lengths show spread (±2 standard deviations), not eigenvector length.</div>
+
+<!--
+Start with the data, without fitting anything. Each of these 500 points has three measured coordinates, x1, x2, and x3. Rotate the cloud: from some angles it looks broad, but viewed edge-on it is very thin. The points lie close to a tilted plane.
+
+A point on a plane only needs two coordinates, measured along two directions within that plane. Our points aren't exactly on it, so this will be an approximation, but perhaps a very good one.
+
+The question is: how do we find those directions automatically? We shouldn't have to choose the plane by eye, and simply deleting one of the original measurements doesn't generally give the best view.
+
+[click] First subtract the mean of each measurement, and compute the covariance matrix of the entire cloud. This is a three by three matrix: its diagonal entries give the variances of the original measurements, and its off-diagonal entries describe how measurements vary together.
+
+[click] Now find its eigenvectors and eigenvalues. The covariance matrix is symmetric, so we can choose three perpendicular unit eigenvectors. Each gives a direction; its eigenvalue tells us the variance of the data in that direction. Order them by decreasing eigenvalue, and we call the directions PC1, PC2, and PC3, the principal components.
+
+Plot those directions as axes through the cloud's mean. Amber is PC1, the most variance; violet is PC2, the next most; red is PC3, with very little variance. The plotted half-lengths are two standard deviations, so the red axis is short because there is little spread, not because its unit eigenvector is shorter.
+
+[click] Any two independent directions span a plane. Choose PC1 and PC2, the eigenvectors with the two largest eigenvalues. Their plane passes through the mean, and the third direction is perpendicular to it. Together the first two account for 99.7 percent of the total variance. This is the plane PCA chooses.
+-->
+
+---
+glowSeed: 7412
+---
+
+# Project onto the Plane: Three Numbers Become Two
+
+<PlaneFit :step="3" />
+
+<div class="grid grid-cols-2 gap-4 text-left text-sm mt-2">
+<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2>
+<b>Project each point onto the plane.</b> Record its coordinates along PC1 and PC2; drop its PC3 coordinate.
+</div>
+<div border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
+<b class="text-teal-300">99.7% of the variance retained.</b> The same points, now described by two numbers, with very little loss.
+</div>
 </div>
 
 <!--
-This is the teaser from the end of the Gaussian Mixtures deck: the same 500 points we ran EM on, lifted into 3D. Three numbers per point. Rotate it, and you'll see they all sit close to one tilted plane.
+Now project every point perpendicularly onto that plane. Equivalently, subtract the mean, take the dot product with PC1 and with PC2, and keep those two numbers. The coordinate along PC3 is discarded.
 
-[click] PCA finds that plane on its own. The amber and violet axes span it; the red one, PC3, points out of the plane and is tiny, because the points barely move in that direction. The arrows are two standard deviations long.
+The picture on the right is that plane viewed face-on, with PC1 horizontal and PC2 vertical. It is the same 500 points, with the same colors, just expressed in two coordinates instead of three. The colors are only a visual guide; PCA did not use the cluster labels.
 
-[click] So describe each point by its position on the plane: its coordinate along PC1 and along PC2. That's the 2D picture on the right, and it's the same three clusters we clustered last time. PC1 holds 71% of the variance, PC2 another 28.5%, PC3 only 0.3%. Two numbers per point instead of three, and we've lost almost nothing.
+We keep 99.7 percent of the original variance, and discard the tiny 0.3 percent perpendicular to the plane. We can approximately reconstruct the 3D points by starting at the mean and moving along PC1 and PC2 by their two coordinates. The missing off-plane displacement is the reconstruction error.
 
-That's dimensionality reduction: find a few coordinates that capture the structure, drop the rest. Today we'll do it with 64 numbers per point instead of 3, and for curved structure that no plane can capture.
+That's the core idea of principal component analysis: choose directions that keep as much variance as possible, then use coordinates in those directions. We'll see why this works later. First, why might real datasets have many more measurements than they need?
 -->
 
 ---
@@ -76,15 +123,15 @@ clicks: 5
 <div class="text-sm opacity-85 mt-1">Images as vectors, intrinsic dimension, the curse of dimensionality.</div>
 </div>
 <div class="reveal" :class="{ shown: $clicks >= 1 }" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-3>
-<div class="font-bold text-amber-300">2 · PCA: the best flat view</div>
-<div class="text-sm opacity-85 mt-1">Max variance = min error = top eigenvectors. Power iteration, SVD, scaling.</div>
+<div class="font-bold text-amber-300">2 · PCA</div>
+<div class="text-sm opacity-85 mt-1">Max variance = min error = top eigenvectors. SVD, scaling.</div>
 </div>
 <div class="reveal" :class="{ shown: $clicks >= 2 }" border="2 solid violet-800" bg="violet-800/20" rounded-lg px-4 py-3>
 <div class="font-bold text-violet-300">3 · PCA on real images</div>
 <div class="text-sm opacity-85 mt-1">Eigendigits, reconstruction, choosing k, denoising, speeding up a model.</div>
 </div>
 <div class="reveal" :class="{ shown: $clicks >= 3 }" border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-3>
-<div class="font-bold text-blue-300">4 · When flat is not enough</div>
+<div class="font-bold text-blue-300">4 · Manifolds</div>
 <div class="text-sm opacity-85 mt-1">Manifolds, the Swiss roll, and why only small neighborhoods can be trusted.</div>
 </div>
 <div class="reveal" :class="{ shown: $clicks >= 4 }" border="2 solid orange-800" bg="orange-800/20" rounded-lg px-4 py-3>
@@ -101,7 +148,7 @@ clicks: 5
 Six parts.
 
 First, why we'd want fewer dimensions at all: what it means for an image to be a point in 64 dimensions, and what goes wrong in high dimensions.
-[click] Second, PCA, derived properly: the direction of most variance, why it's also the direction of least reconstruction error, and why it's an eigenvector. How it's computed, and one trap.
+[click] Second, PCA: the direction of most variance, why it's also the direction of least reconstruction error, and why the answer is an eigenvector of the covariance matrix. How it's computed, and one trap.
 [click] Third, PCA on real images: what the components look like, rebuilding digits, choosing how many to keep, and two practical uses.
 [click] Fourth, where PCA fails: data on curved surfaces, and the key idea for fixing it.
 [click] Fifth, t-SNE, step by step, with a version running live in the browser, and the ways its pictures mislead.
@@ -114,9 +161,7 @@ class: text-center
 glowSeed: 743
 ---
 
-# Part 1 · Why Fewer Dimensions?
-
-<div class="text-lg opacity-80 mt-3">Data often has many columns but few real degrees of freedom.</div>
+# Why Fewer Dimensions
 
 <!--
 Part one: what high-dimensional data looks like, and why we'd want to describe it with fewer numbers.
@@ -149,6 +194,7 @@ We can't look at a 64-dimensional cloud. Today's methods find a handful of coord
 
 ---
 glowSeed: 745
+clicks: 2
 ---
 
 # Most of ℝ⁶⁴ Is Not Digits
@@ -156,11 +202,11 @@ glowSeed: 745
 <RandomVsReal />
 
 <div class="grid grid-cols-2 gap-4 mt-5 text-left text-sm">
-<div border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
+<div class="reveal" :class="{ shown: $clicks >= 1 }" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
 <b>Intrinsic dimension</b>: real images vary along a few directions: stroke thickness, slant, which digit. They fill a thin sliver of the space.
 </div>
-<div border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-2>
-On digits, PCA needs <b>5</b> directions for 50% of the variance, <b>21</b> for 90%, <b>29</b> for 95%: not 64.
+<div class="reveal" :class="{ shown: $clicks >= 2 }" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-2>
+The space has <b>64 dimensions</b>, but real digits occupy only a <b>tiny, highly structured part</b> of that space.
 </div>
 </div>
 
@@ -169,7 +215,7 @@ Left: twelve real digits. Right: twelve random points of the same 64-dimensional
 
 That's the key fact behind this whole lecture. The space has 64 dimensions, but real digits occupy a tiny, highly structured part of it. They vary in a few meaningful ways: which digit it is, how thick the stroke, how slanted, how big. Neighboring pixels move together. That small number of real degrees of freedom is called the intrinsic dimension.
 
-We'll measure it in Part 3: PCA needs only 5 directions to capture half the variance of the digits, 21 for 90%, 29 for 95%. Dimensionality reduction tries to find coordinates for that sliver.
+We'll measure it in the PCA on Real Images section: PCA needs only 5 directions to capture half the variance of the digits, 21 for 90%, 29 for 95%. Dimensionality reduction tries to find coordinates for that sliver.
 -->
 
 ---
@@ -180,16 +226,46 @@ glowSeed: 746
 
 <CurseDims />
 
+<div class="text-sm mt-4" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
+<b class="text-teal-300">As d increases, the distances between any two points converge to approximately the same number.</b> The nearest and farthest pair end up almost equally far apart, so "nearest" stops meaning much.
+</div>
+
 <!--
 Why bother reducing? One reason: high-dimensional space behaves strangely, and distance-based methods suffer.
 
-Left: 150 random points in the unit cube in d dimensions. I compute all 11,000 pairwise distances, divide by the average, and histogram them. At d = 2 the histogram is wide: some pairs are close, some far. Drag the slider up, or press sweep. By d = 100 the histogram is a spike at 1: every point is about the same distance from every other point. The readout is the gap between the farthest pair and the nearest pair, relative to the nearest. It collapses toward zero.
+Panel 1 is the experiment itself: 150 random points in the unit cube. At d = 2 that's just a square, shown here. The ringed amber pair is the nearest pair of all 150; the violet line is the farthest pair. The two bars below compare those two distances at whatever d the slider is on. At d = 2 the nearest pair is 0.005 apart and the farthest 1.33: a huge gap.
+
+Panel 2: I compute all 11,175 pairwise distances, divide by the average, and histogram them. At d = 2 the histogram is wide: some pairs are close, some far. Drag the slider up, or press sweep. Each step adds more coordinates to the same 150 points. By d = 100 the histogram is a spike at 1, and the two bars in panel 1 are almost the same length: every point is about the same distance from every other point. The readout is the gap between the farthest pair and the nearest pair, relative to the nearest: 273 at d = 2, 0.15 at d = 1000.
+
+One subtlety: the distances themselves don't shrink. The mean distance grows, about the square root of d over 6, so 12.9 at d = 1000. What shrinks is the spread relative to that mean. "Approximately the same number" means: every pair is within a few percent of the average.
 
 That's bad news for k-means, k-nearest neighbors, DBSCAN: anything that relies on "near" versus "far". When all distances are about equal, "nearest" stops meaning much.
+-->
 
-Right, a related fact: the ball that just fits inside the cube. In 2D it's 78.5% of the square. In 10 dimensions it's a quarter of a percent; in 20 it's 2.5 × 10⁻⁸. Almost all the volume of a high-dimensional cube is in its corners, far from the center. Our low-dimensional intuition is simply wrong there.
+---
+glowSeed: 7461
+---
 
-Real data is less extreme than random noise, because of the intrinsic-dimension point from the last slide. But reducing to the dimensions that matter is often what makes distance-based methods work.
+# Neighborhoods Go Empty
+
+<BallCube />
+
+<div class="text-sm mt-4" border="2 solid violet-800" bg="violet-800/20" rounded-lg px-4 py-2>
+<b class="text-violet-300">If data is spread uniformly through the cube, the fraction that lands within distance 0.5 of the center shrinks as d grows.</b> Almost all of the volume ends up in the corners.
+</div>
+
+<!--
+A second strange fact, seen from a different angle. Take the ball that just fits inside the cube: every point within distance 0.5 of the center. Think of it as the neighborhood of the center point.
+
+Left: a square with its circle, and 600 points spread uniformly through the cube. At d = 2 the circle covers 78.5% of the square, and about that share of the dots are violet: inside.
+
+Now drag the slider. The picture still shows each point's first two coordinates, but a dot is only violet if it is within 0.5 of the center using all d coordinates. Every extra coordinate adds a bit more distance, so points drop out of the ball even when they look central in this view. At d = 5 about a sixth are left; at d = 10 the exact fraction is a quarter of a percent, so of 600 points we expect one or two; past that, none.
+
+Right: the exact fraction, on a log scale. 2.5 × 10⁻⁸ at d = 20, and by d = 100 it's 10⁻⁷⁰, far off the chart. Almost all the volume of a high-dimensional cube is in its corners, far from the center.
+
+Why care? The ball is a neighborhood. k-nearest neighbors, DBSCAN's epsilon, kernel smoothing all assume a small neighborhood contains enough data. In high dimensions it contains almost nothing, and to catch enough points the "neighborhood" has to grow until it isn't local anymore.
+
+Real data is less extreme than random noise, because of the intrinsic-dimension point from two slides ago. But reducing to the dimensions that matter is often what makes distance-based methods work.
 -->
 
 ---
@@ -239,9 +315,7 @@ class: text-center
 glowSeed: 748
 ---
 
-# Part 2 · PCA: The Best Flat View
-
-<div class="text-lg opacity-80 mt-3">Which direction should we look along?</div>
+# PCA
 
 <!--
 Part two: principal component analysis, built from one question: if you can keep only one number per point, which direction should you project onto?
@@ -270,7 +344,7 @@ The line is turning slowly. Watch the bar on the right: amber is the variance of
 
 Along the cloud's short axis, the projections bunch up: tiny variance, big residuals. Along the long axis, they spread out: big variance, small residuals. The curves below show both as functions of the angle, and they are mirror images.
 
-The formula in the card: the variance of the projections is vᵀΣv, where Σ is the covariance matrix of the data. Same Σ as last deck. PCA's first component is the v that maximizes it. Press "snap to PC1": the variance there is 2.17, the largest eigenvalue of Σ. Next two slides: why the red and amber trade off exactly, and why the answer is an eigenvector.
+The formula in the card: the variance of the projections is vᵀΣv, where Σ is the covariance matrix of the data. Same Σ as last deck. PCA's first component is the v that maximizes it. Press "snap to PC1": the variance there is 2.17, the largest eigenvalue of Σ. Next two slides: why the red and amber trade off exactly, and which direction wins.
 -->
 
 ---
@@ -292,7 +366,7 @@ $$
 <!--
 Why the amber and red curves on the last slide were mirror images. It's Pythagoras.
 
-Take one point x. Its projection onto the line, the residual, and x itself form a right triangle: the residual is perpendicular to the line. So the square on x, the dashed teal one, equals the amber square plus the red square. As the line turns, the two smaller squares trade area, but their total stays fixed, because x doesn't move.
+Take one point x. Its projection onto the line, the residual, and x itself form a right triangle: the residual is perpendicular to the line. So the square on x, the dashed teal one, equals the amber square plus the red square. Drag the line to turn it: the two smaller squares trade area, but their total stays fixed, because x doesn't move. Line it up with x and the red square vanishes; turn it perpendicular and the amber one does.
 
 Sum over all the points, divide by n − 1: total variance, which doesn't depend on v, equals the variance we keep plus the squared reconstruction error we lose.
 
@@ -303,110 +377,29 @@ One contrast worth making: this is not linear regression. Regression minimizes v
 
 ---
 glowSeed: 751
-clicks: 3
+clicks: 2
 ---
 
-# The Optimizer Is an Eigenvector
+# The Answer: Eigenvectors of Σ
 
-<div class="grid grid-cols-2 gap-8 items-center mt-4 text-left">
-<div class="space-y-3">
-<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-teal-300">Constrain</span> <span class="text-sm opacity-85">— without ‖v‖ = 1, making v longer would make vᵀΣv as big as we like.</span>
-</div>
-<div class="reveal" :class="{ shown: $clicks >= 1 }" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-blue-300">Set the gradient to zero</span> <span class="text-sm opacity-85">— ∇(vᵀΣv) = 2Σv, ∇(vᵀv) = 2v.</span>
-</div>
-<div class="reveal" :class="{ shown: $clicks >= 2 }" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-amber-300">Evaluate</span> <span class="text-sm opacity-85">— at an eigenvector, the variance is its eigenvalue. Take the largest.</span>
-</div>
-<div class="reveal" :class="{ shown: $clicks >= 3 }" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
-<span class="font-bold text-violet-300">Repeat</span> <span class="text-sm opacity-85">— best direction orthogonal to v₁ is v₂, and so on: the eigenvectors in order of λ.</span>
-</div>
-</div>
-<div class="space-y-3">
-<div border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4>
-
-$$
-\max_{\mathbf v}\ \mathbf v^\top\Sigma\mathbf v \quad\text{s.t.}\quad \mathbf v^\top\mathbf v=1
-$$
-
-</div>
-<div class="reveal" :class="{ shown: $clicks >= 1 }" border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4>
-
-$$
-\mathcal L=\mathbf v^\top\Sigma\mathbf v-\lambda(\mathbf v^\top\mathbf v-1)\;\Rightarrow\;\Sigma\mathbf v=\lambda\mathbf v
-$$
-
-</div>
-<div class="reveal" :class="{ shown: $clicks >= 2 }" border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4>
-
-$$
-\mathbf v^\top\Sigma\mathbf v=\mathbf v^\top(\lambda\mathbf v)=\lambda
-$$
-
-</div>
-<div class="reveal" :class="{ shown: $clicks >= 3 }" border="2 solid violet-800" bg="violet-800/20" rounded-lg px-4>
-
-$$
-\Sigma = Q\Lambda Q^\top,\quad \lambda_1\ge\lambda_2\ge\dots\ge\lambda_d\ge 0
-$$
-
-</div>
-</div>
-</div>
+<EigenProject :step="$clicks" />
 
 <!--
-Now the algebra. We want the unit vector v that maximizes vᵀΣv. The constraint matters: vᵀΣv is quadratic in v, so without it we'd just make v longer forever. We want a direction, not a length.
+We don't need to search over every direction by hand. There's a known answer, and it comes from the covariance matrix.
 
-[click] Constrained optimization, so a Lagrange multiplier, from the calculus lecture. The Lagrangian is vᵀΣv − λ(vᵀv − 1). The gradient of vᵀΣv is 2Σv because Σ is symmetric; the gradient of vᵀv is 2v. Set the gradient to zero, divide by 2: Σv = λv. That's the eigenvector equation. The best direction must be an eigenvector of the covariance matrix. Not an analogy: it falls straight out.
+Same 48 points as the projection slide. The covariance matrix Σ of this data has two special directions, its eigenvectors: directions that Σ only stretches, without turning. Each comes with a number, its eigenvalue. Here they are as axes through the center of the data: amber is PC1, violet is PC2. They're perpendicular. The arrows are two standard deviations long, and the label at each tip is the eigenvalue.
 
-[click] Which eigenvector? Plug the condition back into the objective: vᵀΣv = vᵀ(λv) = λ, because v has length 1. The variance along an eigenvector is its eigenvalue. So take the eigenvector with the largest eigenvalue. That's PC1, and λ₁ is the variance it captures.
+[click] Project every point onto PC1. The amber dots are spread far along the line: lots of variance. That spread, 2.17, is PC1's eigenvalue. It's the peak of the amber curve on the projection slide, at 33 degrees: no direction keeps more, so no line leaves smaller residuals.
 
-[click] For PC2, maximize again, now also requiring v to be orthogonal to v₁; the answer is the eigenvector with the second-largest eigenvalue, and so on. Σ is symmetric, so by the spectral theorem it has d orthogonal eigenvectors and real eigenvalues, and since it's a covariance they're all non-negative. PCA is the eigendecomposition of Σ, sorted by eigenvalue. Next slide: what that equation looks like.
--->
+[click] Now onto PC2. The violet dots bunch up near the center: little variance, 0.22, the trough of that curve, 90 degrees away.
 
----
-glowSeed: 752
----
+The panel on the right: add the eigenvalues and you get 2.39, the total variance, the same total as on the projection slide. Each eigenvalue's share is its "% of variance explained": PC1 alone keeps 91%. That share is what we'll plot as a scree plot and use to choose k, and it's what scikit-learn reports as explained_variance_ratio_.
 
-# Seeing Σv = λv
+With more dimensions it's the same story: d perpendicular eigenvectors, sorted by eigenvalue; keep the top k.
 
-<EigenDrag />
+One practical caution: if two eigenvalues are nearly equal, the data is nearly round in that plane, and the direction of the top component is barely determined. Small changes to the data can swing it around. Here the ratio is 0.22 to 2.17, so PC1 is very stable.
 
-<!--
-Same covariance matrix as the projection slide. The teal arrow is a unit vector v; drag it around the circle. The amber arrow is Σv, what the matrix does to it.
-
-Generally Σv points somewhere else: Σ stretches and turns. The faint arrows show what Σ does to 24 unit vectors around the circle, and the dashed ellipse is where the whole circle goes. Look at the pattern: Σ pulls every direction toward the long axis.
-
-Now drag v until it lines up with Σv: the panel lights up. That happens in exactly two directions, plus their opposites: along the ellipse's long axis and short axis. Those are the eigenvectors, and the stretch factor there is the eigenvalue: 2.17 along the long axis, 0.22 along the short one.
-
-Also watch the readout vᵀΣv: it's the projected variance from two slides ago. It's largest exactly at the long-axis eigenvector, smallest at the short one. Everything we derived, in one picture: the ellipse of the data is the ellipse of Σ, its axes are the eigenvectors, and the variance along each axis is the eigenvalue. The covariance ellipses of last deck's Gaussians were exactly this.
--->
-
----
-glowSeed: 753
----
-
-# Finding v₁: Power Iteration
-
-<PowerIter />
-
-<div class="text-sm mt-2" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4>
-
-$$
-\mathbf v \leftarrow \frac{\Sigma\mathbf v}{\lVert\Sigma\mathbf v\rVert}\qquad\text{error shrinks by about } \lambda_2/\lambda_1 \text{ per step}
-$$
-
-</div>
-
-<!--
-How do you actually compute an eigenvector? We just saw that Σ pulls every direction toward the long axis. So apply it again and again.
-
-Power iteration: start with any v, multiply by Σ, rescale to length 1, repeat. Write v as a mix of the eigenvectors. Multiplying by Σ multiplies the v₁ part by λ₁ and the v₂ part by λ₂. After many steps the ratio of the two parts has been multiplied by (λ₂/λ₁) to the power of the number of steps, so the v₁ part wins.
-
-The plot starts almost perpendicular to v₁, a bad start on purpose. With close eigenvalues, ratio 0.85, the arrow creeps over; the error on the right falls in a straight line on the log scale, a factor 0.85 per step. Click "our cloud": ratio 0.10, and it's done in about three steps.
-
-This is the core idea of the iterative solvers inside numerical libraries, and of Google's original PageRank. It also shows when PCA's answer is unstable: if two eigenvalues are nearly equal, the data is nearly round in that plane, and the direction of the top component is barely determined.
+If students ask why it's an eigenvector: maximizing the projected variance with a unit-length direction is a constrained optimization, and setting its derivative to zero gives exactly the eigenvector equation. Any textbook has the proof; we just need the result.
 -->
 
 ---
@@ -435,6 +428,37 @@ The whole algorithm, as motion. Raw data, somewhere off in feature space. The am
 [click] Step three, the actual reduction: keep only the first k columns of Z. Here k = 1, so every point drops onto the PC1 axis. Each point is now one number.
 
 [click] Step four, go back: rotate the 1D scores back to the original axes and add the mean. That's the reconstruction X̂. The red segments are the errors, and their mean squared length is the sum of the eigenvalues we dropped. In sklearn, these steps are fit, transform, and inverse_transform.
+-->
+
+---
+glowSeed: 7545
+clicks: 2
+---
+
+# One Point, Two Bases
+
+<BasisRebuild :step="$clicks" />
+
+<div class="text-sm mt-2" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4>
+
+$$
+\mathbf x \;=\; \mu + \sum_{j=1}^{d} z_j\,\mathbf q_j,\qquad z_j=\mathbf q_j^\top(\mathbf x-\mu)\qquad\Longrightarrow\qquad \hat{\mathbf x} \;=\; \mu + \sum_{j=1}^{k} z_j\,\mathbf q_j
+$$
+
+</div>
+
+<!--
+Let's zoom in on one point to see what "change of basis" means. Same 48 centered points and the same eigenvectors as two slides ago, so the mean is the origin.
+
+Start with how we normally describe the teal point x: its two feature values. Walk x₁ along the horizontal axis, then x₂ up the vertical. That is a linear combination of the standard basis vectors e₁ and e₂, the white unit arrows. We never say it, but the raw coordinates are coordinates in that basis.
+
+[click] Now swap in a different basis: q₁ and q₂, the unit eigenvectors of Σ, amber and violet. They are perpendicular unit vectors too, just tilted. To get the point's coordinates in this basis, take dot products: z₁ = q₁ᵀx, z₂ = q₂ᵀx. Then walk z₁ along q₁ and z₂ along q₂, and you land on exactly the same point. Nothing about the point changed, only the description. Stack the q's as columns of Q: z = Qᵀx goes to the new coordinates, x = Qz comes back, because QᵀQ = I. These z's are the scores from the last slide.
+
+Click any other point to decompose it; the walk always closes.
+
+[click] Here's where PCA gets its compression. Keep only z₁, drop z₂. The rebuild z₁q₁ lands at x̂, on the PC1 axis. What's missing is the dropped leg, now red: the reconstruction error, and its length is exactly |z₂|. Because the basis is orthonormal, each coordinate we drop costs exactly its own squared size in error, and averaged over the data that's the dropped eigenvalue.
+
+The formula in the card is the general case. With a mean, add μ back. In d dimensions there are d eigenvectors, and the full sum rebuilds x exactly. Keep the first k terms and you get the best k-dimensional approximation. When we get to the digits, the q's will be 64-pixel images, the eigendigits, and rebuilding a digit will be this same sum: the mean digit plus a weighted sum of eigendigits.
 -->
 
 ---
@@ -490,6 +514,30 @@ Step zero: the mean is (1.81, 1.91); subtract it.
 -->
 
 ---
+glowSeed: 7525
+---
+
+# 20 Features, 3 Components
+
+<ReduceDims />
+
+<div class="text-sm mt-3" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4 py-2>
+<b class="text-teal-300">Most of the variance lives in a few directions.</b> Keep those components and drop the rest: far fewer numbers per row, very little lost.
+</div>
+
+<!--
+The 2D examples show how PCA works, but in 2D there's nothing to reduce. Here's what it's for.
+
+This dataset has 500 rows and 20 features. Behind the scenes, those 20 features are generated from just 3 hidden factors, plus noise. Think of 20 exam questions that really measure 3 skills, or 20 sensors that respond to 3 underlying conditions. We don't tell PCA that; it only sees the 20 columns.
+
+Right: the scree chart. Each bar is one eigenvalue of the 20 by 20 covariance matrix, as a share of the total variance, largest first. The amber line is the running total. Three tall bars, then a flat floor of small ones: that's the noise, spread evenly over the remaining directions. The first component alone has about half the variance.
+
+Left: the data matrix. With k = 3, each row goes from 20 numbers to 3, and we keep about 90 percent of the variance. Drag the slider: k = 1 or 2 loses real structure; past 3, each extra component adds well under a percent, it's mostly noise.
+
+That's the decision you make in practice: look at this curve, find where it flattens, or pick a target like 90 or 95 percent. We'll do exactly this on the digits in a few slides, where the answer is less clean.
+-->
+
+---
 glowSeed: 756
 ---
 
@@ -506,7 +554,12 @@ $$
 
 </div>
 <div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2>
-<code>svd_solver="auto"</code>: tall data (n ≥ 10d, d ≤ 1000, like digits) → form Σ and eigendecompose it (<code>covariance_eigh</code>). Otherwise → SVD of X_c, full or randomized.
+<b>sklearn picks the method for you</b>
+<div class="grid grid-cols-[auto_auto_1fr] gap-x-2 gap-y-1 mt-2">
+<span class="opacity-75">Many rows, few columns</span><span class="text-teal-300">→</span><span>eigenvectors of Σ</span>
+<span class="opacity-75">Otherwise</span><span class="text-teal-300">→</span><span>SVD of the centered data</span>
+</div>
+<div class="opacity-60 text-xs mt-2">Same components either way.</div>
 </div>
 </div>
 
@@ -549,9 +602,7 @@ class: text-center
 glowSeed: 758
 ---
 
-# Part 3 · PCA on Real Images
-
-<div class="text-lg opacity-80 mt-3">64 pixels, 1797 digits: what do the components look like?</div>
+# PCA on Real Images
 
 <!--
 Part three: PCA on the digits. Now each principal component is a direction in 64-dimensional pixel space, which means each one is itself an 8 by 8 image.
@@ -568,11 +619,11 @@ glowSeed: 759
 <!--
 Each principal direction has 64 entries, one per pixel, so we can draw it as an image. Teal pixels have positive weight, violet negative.
 
-Top left, the mean digit: a blurry average of all 1797. Below, the first ten components, with the share of variance each explains: 14.9%, 13.6%, 11.8%, and decreasing.
+Here are the first ten components, with the share of variance each explains: 14.9%, 13.6%, 11.8%, and decreasing.
 
 They don't look like digits; they're contrasts. Look at PC1: positive in some regions, negative in others. A digit gets a high PC1 score if its ink lands on the teal parts and not the violet parts.
 
-The big panel is the best way to read a component. It shows the mean plus c times the component, with c sweeping between −2 and +2 standard deviations. Hover over different components. Moving along a component morphs the average digit in one specific way: watch which strokes appear at one end and fade at the other, and ask which digits that pulls toward. Each component is a "direction of variation" among digits. The later components describe finer and finer details.
+Each component is a "direction of variation" among digits: adding it to the average digit strengthens the teal strokes and weakens the violet ones. The later components describe finer and finer details.
 -->
 
 ---
@@ -647,7 +698,38 @@ It's the best two-dimensional shadow in the variance sense, and it shows real st
 
 Hover over points in the overlap to see what's there. Hover the legend to isolate one class; look at how spread out the 1s are.
 
-Keep this picture in mind. In Part 5, t-SNE and UMAP will produce maps where these classes separate cleanly, from the same 64 numbers.
+Keep this picture in mind. Later, t-SNE and UMAP will produce maps where these classes separate cleanly, from the same 64 numbers.
+-->
+
+---
+glowSeed: 7565
+---
+
+# The Digits on Three Components
+
+<div class="grid grid-cols-[auto_1fr] gap-6 items-center">
+<DigitPca3D />
+<div class="text-left space-y-3 text-sm">
+<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+PC1 + PC2 + PC3 hold <b class="text-amber-300">40.3%</b> of the variance, up from 28.5% with two.
+</div>
+<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+PC3 pulls the <b>2s and 6s</b> one way and the <b>7s, 4s and 9s</b> the other. 1, 5 and 8 still overlap.
+</div>
+<div border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+Drag to rotate. Click a digit in the legend to hide or show it.
+</div>
+</div>
+</div>
+
+<!--
+Same 1797 digits, same colors, now placed by their first three PCA scores. PC1 and PC2 are exactly the axes of the last slide; we've added PC3 as depth.
+
+Three components hold 40.3% of the variance, up from 28.5%. The extra direction helps: PC3 separates the 2s and 6s, which sit on its negative side, from the 7s, 4s and 9s on its positive side. Rotate so you're looking along PC1, and you'll see classes that were stacked on the 2D map pull apart in depth.
+
+But it's still a linear shadow. The 1s, 5s and 8s stay mixed in the middle. As a rough measure: classifying each digit by its nearest class center gets 62% right with two components and 69% with three. Better, not solved. Each extra component adds a little; in a moment we'll see how many PCA needs before a classifier stops losing accuracy, and later how t-SNE and UMAP separate the classes in just two dimensions.
+
+Interaction: drag to rotate, scroll to zoom. Click a digit in the legend to hide it, double-click to show only that digit. The plot spins slowly until you touch it.
 -->
 
 ---
@@ -696,7 +778,7 @@ PCA ignores the labels: the directions of most variance need not be the directio
 <!--
 PCA as a preprocessing step for a supervised model. The pipeline: standardize, reduce to k components, logistic regression. Five-fold cross-validated accuracy on digits as a function of k; hover for exact numbers.
 
-Two components give 53%: much better than the 10% of guessing, but the overlap we saw two slides ago costs a lot. Fifteen components already reach 89%, and thirty get within a point of using all 64.
+Two components give 53%: much better than the 10% of guessing, but the overlap we saw on the two-component map costs a lot. Fifteen components already reach 89%, and thirty get within a point of using all 64.
 
 On a dataset this small the speed-up hardly matters. On a dataset with thousands of features it can matter a great deal, and fewer inputs can also mean less overfitting.
 
@@ -753,9 +835,7 @@ class: text-center
 glowSeed: 766
 ---
 
-# Part 4 · When Flat Is Not Enough
-
-<div class="text-lg opacity-80 mt-3">Data can be low-dimensional and still not lie near any plane.</div>
+# Manifolds
 
 <!--
 Part four. PCA finds the best flat subspace. But low-dimensional structure doesn't have to be flat.
@@ -824,11 +904,11 @@ class: text-center
 glowSeed: 770
 ---
 
-# Part 5 · t-SNE
-
-<div class="text-lg opacity-80 mt-3">t-distributed Stochastic Neighbor Embedding (van der Maaten & Hinton, 2008)</div>
+# t-SNE
 
 <!--
+t-SNE: t-distributed Stochastic Neighbor Embedding (van der Maaten & Hinton, 2008).
+
 Part five: t-SNE, the method that made nonlinear maps of high-dimensional data a standard tool. The name is a mouthful: t-distributed stochastic neighbor embedding. We'll take it in three steps.
 -->
 
@@ -847,9 +927,11 @@ glowSeed: 771
 </div>
 
 <!--
-The whole idea before the details. Left: points in the original space, with links between neighbors; thicker means closer. Those link strengths are p_ij.
+The whole idea before the details. Left: points in the original space. For the digits that's 64 dimensions; we can't draw that, so here it's 3D standing in for "many dimensions". Links join neighbors; thicker means closer. Those link strengths are p_ij. Drag to rotate it.
 
 Right: the 2D map. We start with the points in random positions, and compute the same kind of link strengths between their map positions, q_ij. Red links are stretched: the two points are neighbors in the data but far apart in the map. Then we move the map points, by gradient descent, until the links match, and the colors go teal.
+
+Compare the finished map with the 3D cloud: every cluster stays together, but the clusters are arranged differently. Teal was on top in 3D and ends up bottom right. That's on purpose: t-SNE only tries to keep neighbors together. It doesn't preserve positions, directions, or the distances between clusters.
 
 Notice what is not in the picture: there's no formula from x to its map position. t-SNE doesn't learn a function; it just optimizes the 1797 or so positions directly. That will matter later.
 
@@ -867,17 +949,19 @@ glowSeed: 772
 <div class="text-sm mt-1" border="2 solid teal-800" bg="teal-800/20" rounded-lg px-4>
 
 $$
-p_{j\mid i}=\frac{\exp(-\lVert\mathbf x_i-\mathbf x_j\rVert^2/2\sigma_i^2)}{\sum_{k\ne i}\exp(-\lVert\mathbf x_i-\mathbf x_k\rVert^2/2\sigma_i^2)},\qquad 2^{H(P_i)}=\text{perplexity},\qquad p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}
+p_{j\mid i}=\frac{\exp(-\lVert\mathbf x_i-\mathbf x_j\rVert^2/2\sigma_i^2)}{\sum_{k\ne i}\exp(-\lVert\mathbf x_i-\mathbf x_k\rVert^2/2\sigma_i^2)},\qquad p_{ij}=\frac{p_{j\mid i}+p_{i\mid j}}{2n}
 $$
+
+<div class="pb-2 -mt-1 text-center">You choose the <b class="text-teal-300">perplexity</b>, the effective number of neighbors; t-SNE finds each σᵢ to match it.</div>
 
 </div>
 
 <!--
 Step one. For each point i, put a Gaussian around it and turn distances into probabilities: p_{j|i} is the probability that i would pick j as its neighbor. Closer points get more probability. On the plot, each point's size and brightness is its probability.
 
-The key question is the width σᵢ of each Gaussian, and the answer is: different for every point. Click a point in the tight cluster on the left: the rings, σ and 2σ, are small. Now click one in the diffuse cluster on the right: much bigger. t-SNE picks each σᵢ by bisection so that the distribution has a fixed perplexity, which is 2 to the entropy. Think of it as the effective number of neighbors. Same perplexity, same number of effective neighbors, whether the region is dense or sparse.
+The key question is the width σᵢ of each Gaussian, and the answer is: different for every point. Click a point in the tight cluster on the left: the rings, σ and 2σ, are small. Now click one in the diffuse cluster on the right: much bigger. t-SNE picks each σᵢ by bisection so that every point has the same perplexity: the effective number of neighbors. (Formally, perplexity is 2 to the entropy of point i's neighbor probabilities, H = −Σ p log₂ p. If a point split its probability evenly over k neighbors, H would be log₂ k and the perplexity exactly k.) Same perplexity, same number of effective neighbors, whether the region is dense or sparse.
 
-Drag the perplexity slider: more effective neighbors, bigger σ. Typical values are 5 to 50; the default is 30. The readout shows 2^H matching the slider.
+Drag the perplexity slider: more effective neighbors, bigger σ. Typical values are 5 to 50; the default is 30. The readout shows the effective number of neighbors matching the slider.
 
 Finally, symmetrize: average p_{j|i} and p_{i|j}, divide by 2n, so the p_ij's add to 1 over all pairs.
 
@@ -936,15 +1020,26 @@ $$
 $$
 
 </div>
+<div class="reveal text-sm space-y-2" :class="{ shown: $clicks >= 2 }" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-3>
+<div><b class="text-teal-300">p &gt; q</b> · neighbors in the data, but too far apart in the map → j <b>pulls</b> i toward it</div>
+<div><b class="text-red-300">p &lt; q</b> · strangers in the data, but too close in the map → j <b>pushes</b> i away</div>
+<div><b class="opacity-80">p = q</b> · the right closeness → no force</div>
+</div>
 </div>
 <div class="space-y-3">
 <table class="kl reveal" :class="{ shown: $clicks >= 1 }">
 <thead><tr><th>in the data</th><th>in the map</th><th>cost</th></tr></thead>
 <tbody>
-<tr><td>neighbors (p large)</td><td>far (q small)</td><td class="text-red-300 font-bold">large</td></tr>
-<tr><td>far (p small)</td><td>close (q large)</td><td class="text-teal-300 font-bold">small</td></tr>
+<tr><td>neighbors (p large)</td><td>close (q large)</td><td class="font-bold">none <span class="font-mono font-normal opacity-70">0</span></td></tr>
+<tr><td>neighbors (p large)</td><td>far (q small)</td><td class="text-red-300 font-bold">large <span class="font-mono font-normal opacity-80">+0.046</span></td></tr>
+<tr><td>far (p small)</td><td>close (q large)</td><td class="text-teal-300 font-bold">tiny <span class="font-mono font-normal opacity-80">−0.0005</span></td></tr>
 </tbody>
 </table>
+<div class="reveal text-xs opacity-70 -mt-2" :class="{ shown: $clicks >= 1 }">
+
+Cost per pair $= p_{ij}\cdot\log\dfrac{p_{ij}}{q_{ij}}$. Example: large = 0.01, small = 0.0001. Both mistakes are off by 100×, but the cost is weighted by $p_{ij}$.
+
+</div>
 <div class="reveal text-sm" :class="{ shown: $clicks >= 1 }" border="2 solid white/5" bg="white/5" rounded-lg px-4 py-2>
 Tearing neighbors apart is punished; putting strangers together is barely noticed. t-SNE keeps <b>local</b> structure, not global.
 </div>
@@ -963,7 +1058,7 @@ Gradient descent with momentum, and <b>early exaggeration</b> (p × 12 for the f
 <!--
 Step three: measure how badly the map's q's match the data's p's, and minimize it. The measure is the Kullback–Leibler divergence of P from Q, the sum of p log p over q. It's zero when they match exactly.
 
-[click] KL is asymmetric, and that asymmetry is the whole personality of t-SNE. If two points are neighbors in the data, p large, and the map puts them far apart, q small, the log ratio is big and it's weighted by the big p: a large cost. If two points are far apart in the data, p tiny, and the map puts them close, the term is weighted by that tiny p: almost no cost. So t-SNE works hard to keep neighbors together and hardly cares where non-neighbors end up. It preserves local structure, not global structure. Distances between clusters in a t-SNE map are not reliable.
+[click] KL is asymmetric, and that asymmetry is the whole personality of t-SNE. If two points are neighbors in the data, p large, and the map puts them far apart, q small, the log ratio is big and it's weighted by the big p: a large cost. If two points are far apart in the data, p tiny, and the map puts them close, the term is weighted by that tiny p: almost no cost. The table puts numbers on it: with large = 0.01 and small = 0.0001, both mistakes are off by a factor of 100, but tearing neighbors apart costs +0.046 and putting strangers together about −0.0005, a hundred times less. (A single pair's term can be negative; the total KL never is.) And the top row: neighbors kept close cost nothing, that's the goal. So t-SNE works hard to keep neighbors together and hardly cares where non-neighbors end up. It preserves local structure, not global structure. Distances between clusters in a t-SNE map are not reliable.
 
 [click] The gradient has a nice physical reading: each pair is connected by a spring whose strength is p − q. If the map has them too far apart, q < p, the spring pulls them together; too close, it pushes them apart. Minimize with gradient descent and momentum. One trick: early exaggeration. For the first 250 iterations, multiply all p's by 12, so the attractions dominate and clusters form tight and early, with room to move around each other. Let's watch it.
 -->
@@ -1051,11 +1146,11 @@ class: text-center
 glowSeed: 778
 ---
 
-# Part 6 · UMAP
-
-<div class="text-lg opacity-80 mt-3">Uniform Manifold Approximation and Projection (McInnes, Healy & Melville, 2018)</div>
+# UMAP
 
 <!--
+UMAP: Uniform Manifold Approximation and Projection (McInnes, Healy & Melville, 2018).
+
 Part six: UMAP. Same goal as t-SNE: a 2D map that keeps neighbors together. Different construction, rooted in topology, but we'll stick to what it does: build a weighted graph, then lay it out. It's usually faster, keeps somewhat more global structure, and can place new points.
 -->
 
@@ -1076,7 +1171,7 @@ $$
 </div>
 
 <!--
-Step one: a weighted k-nearest-neighbor graph, like Part 4's, with two twists.
+Step one: a weighted k-nearest-neighbor graph, like the one in the Manifolds section, with two twists.
 
 For each point i, find its k nearest neighbors. ρᵢ is the distance to the very nearest one. Each neighbor gets weight exp of minus (distance − ρ) over σ. Subtracting ρ means every point's nearest neighbor gets weight exactly 1, however sparse its region: every point is connected to something. Hover a point to see its ρ, the dashed ring, and its own edges. σᵢ plays the same role as in t-SNE: it's chosen per point so the weights add up to log₂ k, adapting to the local density.
 
@@ -1301,7 +1396,7 @@ t-SNE: nonlinear, keeps local neighborhoods, can't embed new points, axes mean n
 
 UMAP: similar, keeps somewhat more global structure, can embed new points approximately, scales better. Use it to look at large data, and sometimes as preprocessing for clustering, carefully.
 
-The rule from the pitfalls slide applies to both nonlinear methods. And a few names for further reading: kernel PCA, which does PCA in an implicit feature space like the kernel trick in SVMs; Isomap, the shortest-paths-on-a-graph method from Part 4; and autoencoders, which are next.
+The rule from the pitfalls slide applies to both nonlinear methods. And a few names for further reading: kernel PCA, which does PCA in an implicit feature space like the kernel trick in SVMs; Isomap, the shortest-paths-on-a-graph method from the Manifolds section; and autoencoders, which are next.
 -->
 
 ---
