@@ -651,7 +651,7 @@ clicks: 4
 </div>
 
 <!--
-This makes "neural networks can fit anything" concrete. Each hidden ReLU unit computes a hinge: flat, then a straight ramp starting at some point xₖ (bottom panel; teal ramps go up, violet go down). The output adds the hinges together with weights aₖ. Each hinge adds one bend to the output curve.
+This makes "neural networks can fit anything" concrete. Each hidden ReLU unit computes a hinge, ReLU(x − xₖ): zero until x reaches xₖ, then a straight ramp. The output adds the hinges together with weights aₖ. Before xₖ a unit contributes nothing; after it, the unit adds aₖ to the slope. So each dot on the curve is one hidden unit switching on and bending the output there, and the weight aₖ is how sharply it bends.
 
 This network is built by hand, not trained: the hinge positions are evenly spaced, and the weights are chosen so the curve passes through the target at each hinge.
 

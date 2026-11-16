@@ -1,0 +1,14 @@
+[project]
+name = "neural-networks-demos"
+version = "0.1.0"
+description = "Hands-on PyTorch demos for the Neural Networks and Deep Learning unit"
+requires-python = ">=3.11"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "scikit-learn>=1.9.1",
+    "torch>=2.15.0",
+    "torchvision>=0.29.2",
+]
+
+[tool.uv]
+package = false
