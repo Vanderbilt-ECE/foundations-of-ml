@@ -6,7 +6,7 @@ colorSchema: dark
 title: 'Training Neural Networks in Practice'
 info: |
   ## Training Neural Networks in Practice
-  From "the code runs" to "the network trains well" on real data
+  Data preparation, model design, optimization, and regularization
 class: text-center
 transition: fade-out
 lineNumbers: false
@@ -23,7 +23,7 @@ glowSeed: 450
 
 # Training Neural Networks in Practice {.!text-5xl}
 
-### From "the code runs" to "the network trains well" on real data
+### Data preparation, model design, optimization, and regularization
 
 <div class="mt-4 max-w-2xl mx-auto">
 <TitleCurves />
@@ -42,16 +42,16 @@ Roadmap, about 50 minutes:
 3. Optimize (12 min): learning rate, batch size, momentum, Adam, schedules.
 4. Generalize (8 min): learning curves, early stopping, weight decay, dropout, batch norm.
 5. Go deeper (7 min): why very deep networks fail to train, and residual connections.
-6. A working recipe (5 min): sanity checks, common bugs, defaults.
+6. Checks and defaults (5 min): sanity checks, common bugs, defaults.
 -->
 
 ---
 glowSeed: 451
 ---
 
-# Same Loop, Real Data
+# Neural Network Training Recipe
 
-<div class="text-lg opacity-85 mt-1">The four-line training loop doesn't change. Everything around it does.</div>
+<div class="text-lg opacity-85 mt-1">The steps from raw data to a well-trained network, covered in this lecture.</div>
 
 <div class="grid grid-cols-5 gap-3 mt-8 text-left text-sm">
 
@@ -104,7 +104,7 @@ glowSeed: 452
 
 # 1 · Prepare the Data
 
-<div class="opacity-70">Most training failures start before the first epoch.</div>
+<div class="opacity-70">Splitting, scaling, and encoding the features.</div>
 
 ---
 glowSeed: 453
@@ -130,7 +130,7 @@ glowSeed: 454
 clicks: 1
 ---
 
-# Features Live on Wildly Different Scales
+# Feature Scales in California Housing
 
 <FeatureScales :step="$clicks" />
 
@@ -185,7 +185,7 @@ glowSeed: 456
 clicks: 2
 ---
 
-# On Real Data: Raw Inputs Break SGD
+# Scaled vs. Unscaled Inputs on California Housing
 
 <DemoScaling :step="$clicks" />
 
@@ -203,7 +203,7 @@ Start: plain SGD (learning rate 0.01). With standardized inputs (solid), it trai
 glowSeed: 457
 ---
 
-# Categories and Missing Values: Build a Pipeline
+# Categorical Features and Missing Values
 
 <div class="grid grid-cols-[1.35fr_1fr] gap-6 mt-2 text-left items-center">
 <div>
@@ -274,7 +274,7 @@ glowSeed: 458
 glowSeed: 459
 ---
 
-# The Problem Picks the Output Layer and the Loss
+# Choosing the Output Layer and Loss
 
 <div class="grid grid-cols-3 gap-5 mt-6 text-left">
 
@@ -329,7 +329,7 @@ glowSeed: 460
 clicks: 2
 ---
 
-# Why Not Sigmoid in Hidden Layers?
+# Vanishing Gradients with Sigmoid
 
 <GradientChain :step="$clicks" />
 
@@ -350,7 +350,7 @@ glowSeed: 461
 clicks: 1
 ---
 
-# Dying ReLU, and Its Fixes
+# Dying ReLU
 
 <ReluVariants :step="$clicks" />
 
@@ -372,7 +372,7 @@ glowSeed: 462
 clicks: 2
 ---
 
-# Initialization: Don't Start at Zero
+# Initialization: Breaking Symmetry
 
 <Symmetry :step="$clicks" />
 
@@ -383,7 +383,9 @@ Start: two hidden units with identical incoming weights. They compute the same o
 
 [click] So during backprop they receive identical gradients, and after the update their weights are still identical. Forever. However many hidden units you have, they behave like one. This is the symmetry problem.
 
-[click] Random initialization breaks the tie: each unit starts different, computes something different, gets a different gradient, and learns a different feature. That's why weights start random. Biases can start at zero, since the random weights already break the symmetry.
+[click] Random initialization breaks the tie: each unit starts different, computes something different, gets a different gradient, and learns a different feature.
+
+The red labels are the actual gradients for each unit's two incoming weights, taking ∂L/∂ŷ = 1, and the pulse sizes match them. Each gradient is (output weight) × (input value): with identical output weights of 0.5, both units get (0.5, 1.0). After randomizing, h₁ gets (0.9, 1.8) and h₂ gets (−0.4, −0.8): different sizes and even opposite signs. Note that the output weights have to be random too. If only the input weights differed, both units would still receive the same gradient. That's why weights start random. Biases can start at zero, since the random weights already break the symmetry.
 
 Next: random, but how large?
 -->
@@ -393,7 +395,7 @@ glowSeed: 463
 clicks: 3
 ---
 
-# Initialization: The Scale Has to Be Right
+# Initialization: Choosing the Weight Scale
 
 <InitSpread :step="$clicks" />
 
@@ -478,13 +480,13 @@ glowSeed: 465
 
 # 3 · Optimize
 
-<div class="opacity-70">If you tune only one thing, tune the learning rate.</div>
+<div class="opacity-70">Learning rate, batch size, momentum, Adam, and schedules.</div>
 
 ---
 glowSeed: 466
 ---
 
-# The Learning Rate: Too Small, Too Big, Just Right
+# Effect of the Learning Rate
 
 <LRPlay />
 
@@ -507,7 +509,7 @@ glowSeed: 467
 clicks: 2
 ---
 
-# Finding a Good Learning Rate on Real Data
+# Choosing the Learning Rate
 
 <LRSearch :step="$clicks" />
 
@@ -527,7 +529,7 @@ Always search on a log scale: 0.0001, 0.001, 0.01, 0.1. The difference between 0
 glowSeed: 468
 ---
 
-# Mini-Batch Size: Noisy but Cheap
+# Mini-Batch Size
 
 <BatchNoise />
 
@@ -546,10 +548,62 @@ Practical guidance:
 -->
 
 ---
+glowSeed: 4681
+clicks: 3
+---
+
+# Where the Data Lives: Dataset Fits in RAM
+
+<DataPipeline mode="ram" :step="$clicks" />
+
+<!--
+Where does a batch actually come from? Three kinds of memory, each with a job. The sizes are a typical workstation.
+
+- Disk: holds everything (terabytes), and keeps it when the power is off, but it's the slowest.
+- RAM: the CPU's working memory. Tens of gigabytes, much faster than disk.
+- VRAM: the GPU's own memory. The GPU can only compute on data in VRAM. It's the fastest, and the smallest: 8 to 24 GB on most cards.
+
+Each square is one batch. Here the dataset is 20 GB: it fits in RAM (64 GB), but not in VRAM (12 GB).
+
+[click] Before training, read the whole dataset from disk into RAM, once. The CPU preprocesses it there: scaling, encoding categories, filling missing values. The squares turn from gray to blue. This is what happens in today's demo, with pandas and scikit-learn.
+
+[click] The training loop. Each step, one batch is copied from RAM to VRAM: that's the .to("cuda") in the loop. Then the GPU does all the heavy work. Forward pass (amber): the activations of every layer are computed and stored, because the backward pass needs them. Backward pass (red): gradients are computed and the stored activations are freed. Update (teal): the optimizer changes the weights. The model's weights, gradients, and optimizer state (Adam keeps two extra numbers per weight) stay in VRAM for the whole run. Only the batches come and go. Batches are taken in a shuffled order, and after all 12, that's one epoch.
+
+The CPU is mostly waiting here: the data is already prepared, so handing over a batch is fast.
+
+[click] Double the batch size: each step copies twice as much, and the activations take twice as much VRAM, but an epoch takes half as many steps. This is the hard limit on batch size: when the batch plus its activations no longer fit next to the model, PyTorch stops with "CUDA out of memory." The usual fix is a smaller batch.
+
+If the dataset is small enough to fit in VRAM too, like California Housing at about 1 MB, you can move it all to the GPU once and skip the per-step copy.
+-->
+
+---
+glowSeed: 4682
+clicks: 2
+---
+
+# Where the Data Lives: Dataset Larger Than RAM
+
+<DataPipeline mode="disk" :step="$clicks" />
+
+<!--
+Now the dataset is 500 GB: millions of images, say. It doesn't fit in RAM, so it can't be loaded once up front.
+
+[click] Instead, it stays on disk and is streamed. Each step, the CPU reads one batch from disk (the amber outline; the reads jump around because the data is shuffled) and preprocesses it in RAM: decoding images, resizing, random augmentations. RAM only holds a short queue of upcoming batches. At the same time, the GPU works on the batch at the front of the queue, exactly as before.
+
+The key words are "at the same time." The CPU prepares batch 4 while the GPU computes batch 1. This overlap is called prefetching. If the CPU only started reading a batch when the GPU asked for it, the GPU would sit idle during every read.
+
+[click] In PyTorch, the DataLoader runs this pipeline. num_workers=4 starts four CPU processes that read and preprocess batches in parallel. pin_memory=True puts batches in page-locked RAM, which makes the copy to the GPU faster.
+
+The thing to watch: if the CPU and disk can't prepare batches as fast as the GPU uses them, the GPU waits, and an expensive GPU runs at a fraction of its speed. Sign: low GPU utilization in nvidia-smi. Fixes: more workers, a faster disk, or less preprocessing per batch.
+
+Batch size matters in both scenarios: it's how much each step reads, copies, and stores as activations in VRAM.
+-->
+
+---
 glowSeed: 469
 ---
 
-# Momentum: Build Up Speed Along the Valley
+# Momentum
 
 <OptimRace :methods="['sgd', 'momentum']" />
 
@@ -580,7 +634,7 @@ Momentum (amber) keeps a running velocity: each step adds the new gradient to a 
 glowSeed: 470
 ---
 
-# Adam: A Step Size for Every Weight
+# Adam
 
 <OptimRace :methods="['sgd', 'momentum', 'adam']" />
 
@@ -623,7 +677,7 @@ glowSeed: 471
 clicks: 3
 ---
 
-# Learning-Rate Schedules: Big Steps, Then Small
+# Learning-Rate Schedules
 
 <LRSchedules :step="$clicks" />
 
@@ -658,14 +712,14 @@ glowSeed: 472
 
 # 4 · Generalize
 
-<div class="opacity-70">Training loss tells you what the network memorized. Validation loss tells you what it learned.</div>
+<div class="opacity-70">Learning curves, early stopping, weight decay, dropout, and batch normalization.</div>
 
 ---
 glowSeed: 473
 clicks: 4
 ---
 
-# Read the Learning Curves
+# Reading Learning Curves
 
 <CurveDoctor :step="$clicks" />
 
@@ -687,7 +741,7 @@ Encourage students to always plot both curves; a single final number hides all o
 glowSeed: 474
 ---
 
-# Early Stopping: Keep the Best Weights
+# Early Stopping
 
 <EarlyStop />
 
@@ -710,7 +764,7 @@ glowSeed: 475
 clicks: 2
 ---
 
-# Two More Regularizers: Weight Decay and Dropout
+# Weight Decay and Dropout
 
 <div class="grid grid-cols-2 gap-6 mt-2 text-left">
 
@@ -761,20 +815,25 @@ glowSeed: 476
 
 # Batch Normalization
 
-<div class="grid grid-cols-[1fr_1.1fr] gap-6 mt-4 text-left">
+<div class="grid grid-cols-[1.1fr_1fr] gap-6 mt-3 text-left">
 
 <div class="flex flex-col gap-3">
 
 <div border="2 solid violet-800" bg="violet-800/20" rounded-lg px-4 py-2>
-<div class="font-bold text-violet-300 mb-1">Standardize inside the network</div>
-
-For each unit, over the mini-batch:
+<div class="font-bold text-violet-300 mb-1">One unit, across the batch</div>
 
 $$
-\hat h = \frac{h - \mu_{\text{batch}}}{\sqrt{\sigma^2_{\text{batch}} + \epsilon}}, \qquad y = \gamma\,\hat h + \beta
+\hat h_i = \frac{h_i - \mu}{\sqrt{\sigma^2 + \epsilon}}, \qquad \tilde h_i = \gamma\,\hat h_i + \beta
 $$
 
-<div class="text-sm opacity-85">γ and β are learned, so the layer can undo the normalization if that helps.</div>
+<div class="text-sm opacity-85 leading-snug">
+
+$h_i$: the unit's value for example $i$ (Linear output, before ReLU)<br>
+$\mu, \sigma^2$: that unit's mean and variance over the batch<br>
+$\hat h_i$: standardized &nbsp;·&nbsp; $\tilde h_i$: the output, passed to the ReLU<br>
+$\gamma, \beta$: learned per unit; they can undo the standardization
+
+</div>
 </div>
 
 </div>
@@ -786,7 +845,11 @@ $$
 </div>
 
 <div border="2 solid amber-800" bg="amber-800/20" rounded-lg px-4 py-2>
-<b class="text-amber-300">Train vs. eval:</b> training uses each batch's own mean and variance and keeps running averages of them. <code>model.eval()</code> switches to the running averages, so one prediction doesn't depend on the rest of its batch.
+<b class="text-amber-300">Training</b> <code>model.train()</code><br>μ and σ² come from <b>the current batch</b>. The layer also keeps a running average of them.
+</div>
+
+<div border="2 solid blue-800" bg="blue-800/20" rounded-lg px-4 py-2>
+<b class="text-blue-300">Evaluation</b> <code>model.eval()</code><br>μ and σ² are the <b>running averages</b>: fixed numbers. Works for a single example, and each prediction depends only on its own input.
 </div>
 
 <div border="2 solid white/10" bg="white/5" rounded-lg px-4 py-2>
@@ -799,13 +862,20 @@ $$
 <!--
 Batch normalization (Ioffe and Szegedy, 2015) applies the "standardize your inputs" idea to every hidden layer.
 
-For each unit, compute the mean and variance of its values over the current mini-batch, standardize, then scale and shift by two learned parameters, γ and β. Those let the network keep the normalization, undo it, or anything in between.
+The key word is "across." Take one unit, one neuron in the layer. A batch of B examples gives that unit B values, one per example. Batch norm computes the mean and variance of those B values and standardizes them. Every unit does this separately, with its own mean and variance: a layer of 64 units computes 64 means and 64 variances per batch.
+
+ε is a tiny constant that prevents dividing by zero.
+
+Then the learned scale and shift: h̃ = γ ĥ + β, with one γ and one β per unit, trained by gradient descent like any weight. If standardizing turns out to hurt, the network can learn γ = σ and β = μ and get the original values back. h̃ is the layer's output; it goes into the ReLU. (The original paper calls it y; I call it h̃ here so it isn't confused with the target y.)
 
 Why it helps: each layer's inputs stay in a well-scaled range even as the earlier layers change, so the loss surface is better conditioned (the scaling slide, inside the network). In practice networks with batch norm train faster, tolerate larger learning rates, and are less sensitive to initialization.
 
-Train vs. eval: during training, statistics come from the current batch, and the layer also keeps a running average of them. In evaluation mode it uses the running averages. That's the second reason model.eval() matters: without it, a prediction would depend on whichever other examples happened to share its batch.
+Training vs. evaluation. During training, μ and σ² come from the current batch. At prediction time that doesn't work, for two reasons:
+- You may be predicting one example at a time. A "batch" of one has variance 0, and standardizing would turn every value into 0.
+- Even with a full batch, a prediction would depend on which other examples happened to be in it. The same house could get a different price depending on its neighbors in the batch.
+So during training the layer also keeps a running average of each unit's mean and variance (in PyTorch, an exponential moving average: each batch moves it 10% of the way toward that batch's values). model.eval() switches to those fixed averages, so batch norm becomes a fixed per-unit shift and scale. That's the second reason model.eval() matters, after dropout.
 
-Placement: usually Linear → BatchNorm → activation. For small MLPs it's optional; it matters more in deep networks, and it's standard in CNNs (next lecture). Transformers use a close relative, layer normalization, which normalizes across a single example's features instead of across the batch.
+Placement: usually Linear → BatchNorm → activation. For small MLPs it's optional; it matters more in deep networks, and it's standard in CNNs (next lecture). Transformers use a close relative, layer normalization, which normalizes across a single example's features instead of across the batch, so it behaves the same in training and evaluation.
 -->
 
 ---
@@ -816,14 +886,14 @@ glowSeed: 477
 
 # 5 · Go Deeper
 
-<div class="opacity-70">More layers should never hurt. In practice, they do.</div>
+<div class="opacity-70">Why very deep networks are hard to train, and residual connections.</div>
 
 ---
 glowSeed: 478
 clicks: 2
 ---
 
-# Deeper Should Be Better… But It Isn't
+# The Degradation Problem in Deep Networks
 
 <DepthDegradation :step="$clicks" />
 
@@ -846,7 +916,7 @@ glowSeed: 479
 clicks: 2
 ---
 
-# The Residual Block: Learn the Change
+# Residual Blocks
 
 <ResidualBlock :step="$clicks" />
 
@@ -865,7 +935,7 @@ glowSeed: 480
 clicks: 2
 ---
 
-# Why It Works: A Highway for the Gradient
+# Gradient Flow in Residual Networks
 
 <GradHighway :step="$clicks" />
 
@@ -937,9 +1007,9 @@ class: text-center
 glowSeed: 482
 ---
 
-# 6 · A Working Recipe
+# 6 · Checks and Defaults
 
-<div class="opacity-70">Cheap checks first, long runs second.</div>
+<div class="opacity-70">Sanity checks, common bugs, and default settings.</div>
 
 ---
 glowSeed: 483
@@ -1012,7 +1082,7 @@ Amber, in the data:
 glowSeed: 485
 ---
 
-# The Default Recipe
+# Default Settings
 
 <div class="grid grid-cols-[1.1fr_1fr] gap-6 mt-3 text-left">
 
